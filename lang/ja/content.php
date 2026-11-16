@@ -55,6 +55,9 @@ return [
         'page' => 'ページ名がありません（バージョンのページだけを指しています）。',
     ],
 
+    // 補足資料のURL
+    'official_url' => 'Laravel の公式の資料（https://laravel.com/docs/{バージョン}/{ページ}、https://laravel.com/blog/…、https://blog.laravel.com/…）にしてください。',
+
     // 警告
     'warnings' => [
         'recall_cards_count' => ':file: recall_cards が :count 件です（推奨 3〜5 件）',

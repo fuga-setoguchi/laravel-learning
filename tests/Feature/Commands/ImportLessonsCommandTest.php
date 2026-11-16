@@ -552,3 +552,72 @@ it('CMD-01-T36 code_language が許可されていない値だとエラーにな
 
     expectValidationError($this->content, ['questions.1.code_language: php / blade / bash / json / yaml / sql のいずれかにしてください（ruby）。']);
 });
+
+// ---------------------------------------------------------------- 補足資料（references）
+
+it('CMD-01-T38 補足資料に他のバージョンのドキュメント・公式ブログを書ける', function (): void {
+    $this->content->editLesson('ch01/l01.md', function (array $lesson): array {
+        $lesson['references'] = [
+            ['title' => 'Laravel 11 リリースノート', 'url' => 'https://laravel.com/docs/11.x/releases#laravel-11'],
+            ['title' => '公式ブログ', 'url' => 'https://blog.laravel.com/laravel-11-now-available'],
+            ['title' => '公式ブログ（laravel.com）', 'url' => 'https://laravel.com/blog/laravel-12-is-now-released'],
+        ];
+
+        return $lesson;
+    });
+
+    expect(importLessons($this->content->path)['code'])->toBe(0);
+
+    $lesson = Lesson::with(['sources', 'references'])->findOrFail('ch01-l01');
+    expect($lesson->sources->pluck('url')->all())->toBe(['https://laravel.com/docs/13.x/releases'])
+        ->and($lesson->references->pluck('url')->all())->toBe([
+            'https://laravel.com/docs/11.x/releases#laravel-11',
+            'https://blog.laravel.com/laravel-11-now-available',
+            'https://laravel.com/blog/laravel-12-is-now-released',
+        ])
+        ->and($lesson->references->pluck('position')->all())->toBe([1, 2, 3])
+        ->and($lesson->sources->firstOrFail()->position)->toBe(1);
+});
+
+it('CMD-01-T39 補足資料は任意で、空の配列でも取り込める', function (): void {
+    $this->content->editLesson('ch01/l02.md', function (array $lesson): array {
+        $lesson['references'] = [];
+
+        return $lesson;
+    });
+
+    expect(importLessons($this->content->path)['code'])->toBe(0)
+        ->and(LessonSource::where('kind', 'reference')->count())->toBe(0);
+});
+
+it('CMD-01-T40 補足資料のURLが公式の資料でないとエラーになる', function (string $url): void {
+    $this->content->editLesson('ch01/l01.md', function (array $lesson) use ($url): array {
+        $lesson['references'] = [['title' => '資料', 'url' => $url]];
+
+        return $lesson;
+    });
+
+    expectValidationError($this->content, ['references.0.url: Laravel の公式の資料']);
+})->with([
+    'http' => ['http://laravel.com/docs/11.x/releases'],
+    '別ドメイン' => ['https://example.com/laravel-11'],
+    'ドメインの偽装' => ['https://laravel.com.evil.example/docs/11.x/releases'],
+    'ページ名なし' => ['https://laravel.com/docs/11.x/'],
+    'ドキュメント・ブログ以外' => ['https://laravel.com/careers'],
+]);
+
+it('CMD-01-T41 補足資料だけを修正すると、レッスンが「更新」に数えられ、出典は変わらない', function (): void {
+    importLessons($this->content->path);
+    $sourcesBefore = LessonSource::where('kind', 'source')->orderBy('id')->get()->toArray();
+
+    $this->content->editLesson('ch01/l01.md', function (array $lesson): array {
+        $lesson['references'] = [['title' => 'Laravel 11 リリースノート', 'url' => 'https://laravel.com/docs/11.x/releases']];
+
+        return $lesson;
+    });
+    $result = importLessons($this->content->path);
+
+    expect($result['output'])->toContain('レッスン: 追加 0 / 更新 1 / 変更なし 2')
+        ->and(LessonSource::where('kind', 'source')->orderBy('id')->get()->toArray())->toBe($sourcesBefore)
+        ->and(LessonSource::where('kind', 'reference')->count())->toBe(1);
+});

@@ -75,7 +75,8 @@
 | --- | --- | --- |
 | 1 | 事前の問いの結果 | 正誤・あなたの答え・正解・解説を表示する。`answer` がない、またはその問いの `key` でない場合は `lessons.show` へリダイレクトする |
 | 2 | 対象バージョン | `laravel_version` |
-| 3 | 出典 | `lesson_sources` を順に表示。新しいタブで開く（`target="_blank" rel="noopener noreferrer"`） |
+| 3 | 出典 | 出典（`kind = source`）を順に表示。新しいタブで開く（`target="_blank" rel="noopener noreferrer"`） |
+| 3b | 補足資料 | 補足資料（`kind = reference`）があれば、出典の下に「参考（経緯・背景）」として順に表示する。開き方は出典と同じ |
 | 4 | 本文 | `Markdown::toHtml(body)` |
 | 5 | 本文を閉じて思い出す | `lessons.recall` へのリンク |
 

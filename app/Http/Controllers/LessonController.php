@@ -44,7 +44,7 @@ class LessonController extends Controller
             return redirect()->route('lessons.show', $lesson);
         }
 
-        $lesson->load(['chapter', 'sources']);
+        $lesson->load(['chapter', 'sources', 'references']);
 
         return view('lessons.read', [
             'lesson' => $lesson,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\SourceKind;
 use App\ValueObjects\PreQuestion;
 use Database\Factories\LessonFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -45,11 +46,23 @@ class Lesson extends Model
     }
 
     /**
+     * 出典（レッスンの内容の根拠）
+     *
      * @return HasMany<LessonSource, $this>
      */
     public function sources(): HasMany
     {
-        return $this->hasMany(LessonSource::class)->orderBy('position');
+        return $this->hasMany(LessonSource::class)->where('kind', SourceKind::Source)->orderBy('position');
+    }
+
+    /**
+     * 補足資料（経緯や背景）
+     *
+     * @return HasMany<LessonSource, $this>
+     */
+    public function references(): HasMany
+    {
+        return $this->hasMany(LessonSource::class)->where('kind', SourceKind::Reference)->orderBy('position');
     }
 
     /**
