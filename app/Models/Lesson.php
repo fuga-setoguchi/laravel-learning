@@ -69,6 +69,28 @@ class Lesson extends Model
     }
 
     /**
+     * 次に受講するレッスン: 有効で未完了のうち、章番号・順番が最も前のもの
+     */
+    public static function nextToStudy(): ?self
+    {
+        return self::query()->active()->whereDoesntHave('progress')->inCurriculumOrder()->first();
+    }
+
+    /**
+     * ルートモデル結合（/lessons/{lesson}）では、引退したレッスンを見つからない扱い（404）にする
+     */
+    public function resolveRouteBinding($value, $field = null): ?self
+    {
+        return self::query()->active()->where($field ?? $this->getRouteKeyName(), $value)->first();
+    }
+
+    /** 画面に出す番号（例: 3-2） */
+    public function number(): string
+    {
+        return "{$this->chapter_id}-{$this->position}";
+    }
+
+    /**
      * 引退していないレッスン
      *
      * @param  Builder<self>  $query
@@ -77,6 +99,17 @@ class Lesson extends Model
     protected function active(Builder $query): void
     {
         $query->whereNull('retired_at');
+    }
+
+    /**
+     * カリキュラムの順（章番号・順番の昇順）
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function inCurriculumOrder(Builder $query): void
+    {
+        $query->orderBy('chapter_id')->orderBy('position');
     }
 
     protected function casts(): array
