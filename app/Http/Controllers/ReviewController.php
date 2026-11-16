@@ -66,7 +66,7 @@ class ReviewController extends Controller
     /** 選択式・AIコードレビュー問題の正誤と解説。状態は変えない */
     public function result(ReviewLog $reviewLog, ChoiceShuffler $shuffler): View
     {
-        $question = $reviewLog->question()->with(['choices', 'lesson.chapter', 'lesson.sources'])->firstOrFail();
+        $question = $reviewLog->question()->with(['choices', 'lesson.chapter', 'lesson.sources', 'lesson.references'])->firstOrFail();
         abort_if($question->type === QuestionType::Recall, 404);
 
         // 次回の復習日は、review_states ではなく回答時点の段階から求める（後で状態が変わっても変わらないように）

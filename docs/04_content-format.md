@@ -52,6 +52,9 @@ laravel_version: "13.x"
 sources:
   - title: Service Container
     url: https://laravel.com/docs/13.x/container
+references:
+  - title: Laravel 11 リリースノート
+    url: https://laravel.com/docs/11.x/releases
 pre_question:
   prompt: コントローラーの中で `new PaymentService()` と書くと、テストで困ることはどれか。
   choices:
@@ -121,7 +124,8 @@ questions:
 | `order` | ○ | 整数。`id` のレッスン番号と一致すること |
 | `title` | ○ | 1〜100文字 |
 | `laravel_version` | ○ | 文字列。`^\d+\.x$` |
-| `sources` | ○ | 1件以上の配列 |
+| `sources` | ○ | 1件以上の配列。レッスンの内容の根拠 |
+| `references` | × | 配列。経緯や背景を示す補足資料（下記「補足資料」） |
 | `pre_question` | ○ | 下記「事前の問い」 |
 | `recall_cards` | ○ | 1件以上の配列（推奨3〜5件） |
 | `questions` | ○ | 1件以上の配列（推奨1〜2件） |
@@ -133,6 +137,15 @@ questions:
 | --- | --- | --- |
 | `title` | ○ | 1〜100文字 |
 | `url` | ○ | `https://laravel.com/docs/{laravel_version}/` で始まる（例: `13.x` なら `https://laravel.com/docs/13.x/`）。その後にページ名が1文字以上ある。`#` 以降のアンカーは可 |
+
+#### 補足資料（references の各要素）
+
+`sources` は「レッスンの内容の根拠」で、対象バージョンの公式ドキュメントに限る。`references` は「いつ・何が変わったか」などの経緯や背景を示す補足資料で、他のバージョンのドキュメントや公式ブログを書ける。レッスンの主張の根拠を `references` だけに頼ってはいけない（根拠は必ず対象バージョンの `sources` で確認できること）。
+
+| 項目 | 必須 | 規則 |
+| --- | --- | --- |
+| `title` | ○ | 1〜100文字 |
+| `url` | ○ | `https://` で始まり、次のいずれか。`https://laravel.com/docs/{バージョン}/{ページ}`（バージョンは `^\d+\.x$` または `master`。`laravel_version` と違ってよい）、`https://laravel.com/blog/{記事}`、`https://blog.laravel.com/{記事}` |
 
 #### 事前の問い（pre_question）
 

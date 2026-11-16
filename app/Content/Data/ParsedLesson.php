@@ -10,7 +10,8 @@ use App\ValueObjects\PreQuestion;
 final readonly class ParsedLesson
 {
     /**
-     * @param  list<ParsedSource>  $sources
+     * @param  list<ParsedSource>  $sources  出典（内容の根拠）
+     * @param  list<ParsedSource>  $references  補足資料（経緯や背景）
      * @param  list<ParsedQuestion>  $questions  想起カード → 問題の記載順
      */
     public function __construct(
@@ -22,6 +23,7 @@ final readonly class ParsedLesson
         public string $laravelVersion,
         public PreQuestion $preQuestion,
         public array $sources,
+        public array $references,
         public array $questions,
     ) {}
 }

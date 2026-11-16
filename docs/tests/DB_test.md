@@ -15,6 +15,7 @@
 | DB-T04 | `(chapter_id, position)` が同じレッスン / `(question_id, key)` が同じ選択肢 | 一意制約で失敗する |
 | DB-T05 | 存在しない `question_id` の `review_states` | 外部キー制約で失敗する |
 | DB-T06 | `review_states` がある問題を削除 | 外部キー制約で失敗する（学習記録を巻き込まない） |
+| DB-T16 | `lesson_sources.kind` に `source` / `reference` 以外を保存 | CHECK 制約で失敗する |
 | DB-T07 | 出典・選択肢を持つレッスン・問題を削除（テストのみで行う操作） | 出典・選択肢も削除される（cascade） |
 
 ## 2. モデル

@@ -62,13 +62,14 @@ chapters 1─* lessons 1─* lesson_sources
 
 - 一意制約: `(chapter_id, position)`（`id` が章・順番から決まるため、引退したレッスンとも重ならない）
 
-### lesson_sources（出典）
+### lesson_sources（出典・補足資料）
 
 | カラム | 型 | NULL | 制約・既定値 | 説明 |
 | --- | --- | --- | --- | --- |
 | id | integer | × | PK（自動採番） | |
 | lesson_id | string(16) | × | FK → lessons.id | |
-| position | integer | × | | 表示順 |
+| kind | enum（varchar + CHECK） | × | 既定 `source` | `source`（出典: 教材の `sources`）/ `reference`（補足資料: 教材の `references`）（`SourceKind`） |
+| position | integer | × | | 種別ごとの表示順 |
 | title | string | × | | 例: `Service Container` |
 | url | string(255) | × | | `https://laravel.com/docs/13.x/container` |
 
@@ -165,7 +166,7 @@ chapters 1─* lessons 1─* lesson_sources
 | --- | --- | --- |
 | Chapter | `id`（int、自動採番しない） | `hasMany(Lesson)`。スコープ `active()`（`retired_at IS NULL`） |
 | Lesson | `id`（string、`$incrementing = false`、`$keyType = 'string'`） | `belongsTo(Chapter)`、`hasMany(LessonSource)`、`hasMany(Question)`、`hasOne(LessonProgress)`。スコープ `active()`（`retired_at IS NULL`）、`inCurriculumOrder()`（章番号・順番の昇順）。`Lesson::nextToStudy()` で「次に受講するレッスン」（有効で未完了のうち、章番号・順番が最も前のもの。SCR-01・SCR-03・SCR-04 で共通）を返す。ルートモデル結合では引退したレッスンを見つからない扱い（404）にする。`pre_question` は `PreQuestion` 値オブジェクトへキャスト |
-| LessonSource | `id` | `belongsTo(Lesson)` |
+| LessonSource | `id` | `belongsTo(Lesson)`。`kind` は `SourceKind`。`Lesson` には種別ごとのリレーション `sources()`（出典）・`references()`（補足資料）を持たせる |
 | Question | `id`（string） | `belongsTo(Lesson)`、`hasMany(QuestionChoice)`、`hasOne(ReviewState)`、`hasMany(ReviewLog)`。スコープ `active()`（問題とレッスンの両方が引退していない）。`type` は `QuestionType` |
 | QuestionChoice | `id` | `belongsTo(Question)` |
 | LessonProgress | `lesson_id`（string） | `belongsTo(Lesson)` |

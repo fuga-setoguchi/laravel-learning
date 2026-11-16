@@ -40,7 +40,7 @@
 | 段階 | 内容 | 実装 |
 | --- | --- | --- |
 | 解析 | front matter がない、YAMLの構文エラー、front matter が連想配列でない | `LessonFileParser`。YAMLの例外を捕まえてエラーにする |
-| ファイル単位 | 必須項目、型、正規表現、件数、`answer` が `choices` の `key` にあるか、`key` の重複、出典URLの形式とバージョン、idとファイル位置の一致、問題idの接頭辞 | `LessonFileValidator`。Laravel の `Validator::make()` の規則と、独自の規則クラス（`LaravelDocsUrl` など）、`after()` フック |
+| ファイル単位 | 必須項目、型、正規表現、件数、`answer` が `choices` の `key` にあるか、`key` の重複、出典URLの形式とバージョン、補足資料のURLの形式（`LaravelOfficialUrl`）、idとファイル位置の一致、問題idの接頭辞 | `LessonFileValidator`。Laravel の `Validator::make()` の規則と、独自の規則クラス（`LaravelDocsUrl` など）、`after()` フック |
 | ファイルをまたぐ | `chapters.yaml` の `number` の重複、`chapter` が `chapters.yaml` にあるか（レッスンidと `order` はファイル位置との一致で、問題idはレッスンidの接頭辞で、それぞれ一意になる。問題idのファイル内の重複はファイル単位で検証する） | `LessonFileValidator` |
 
 次の場合は、エラーではなく警告として表示し、取り込みは行う。
@@ -70,7 +70,7 @@ ERROR  教材の検証で 3 件のエラーがありました。DBは変更し�
 | --- | --- | --- | --- |
 | chapters | `number` | 追加・更新（`title`）。`retired_at` を NULL に戻す | `retired_at` を設定（その章を指すレッスンファイルがあれば、検証の段階でエラー） |
 | lessons | `id` | 追加・更新。`retired_at` があれば NULL に戻す | `retired_at` を設定（すでに設定済みなら変更しない） |
-| lesson_sources | レッスン単位 | レッスンの出典をすべて削除して作り直す | （レッスンの引退に従う） |
+| lesson_sources | レッスン・種別（出典 / 補足資料）単位 | その種別の行をすべて削除して作り直す | （レッスンの引退に従う） |
 | questions | `id` | 追加・更新。`position` はファイル内の記載順（想起カード → 問題）。`retired_at` を NULL に戻す | `retired_at` を設定 |
 | question_choices | 問題単位 | 問題の選択肢をすべて削除して作り直す | （問題の引退に従う） |
 | lesson_progress / review_states / review_logs | — | 変更しない | 変更しない |
@@ -91,7 +91,7 @@ WARN  content/ch01/l03.md: recall_cards が 2 件です（推奨 3〜5 件）
 ```
 
 - 「更新」はDBの値が実際に変わったもの、「変更なし」は同じ内容だったもの
-  - レッスン: 行の変更（`wasChanged()`）、または出典の一覧（タイトル・URL・順番）が変わった場合に「更新」
+  - レッスン: 行の変更（`wasChanged()`）、または出典・補足資料の一覧（タイトル・URL・順番）が変わった場合に「更新」
   - 問題: 行の変更、または選択肢の一覧（`key`・本文・正解）が変わった場合に「更新」
   - 出典・選択肢は、作り直す前に既存の一覧と比較し、同じなら作り直さない
 - `--dry-run` のときは先頭を「検証に成功しました（--dry-run のため、DBは変更していません）」とし、同じ件数を表示する。件数の計算は、トランザクション内で反映してから最後にロールバックすることで求める（集計のための別ロジックを作らない）
