@@ -41,7 +41,7 @@
 | Markdown | league/commonmark（`Str::markdown`） | Laravel同梱 | 本文・問題文の表示 |
 | front matter | league/commonmark の FrontMatterExtension + symfony/yaml（`composer require symfony/yaml` が必要） | | 教材ファイルの解析 |
 | ハイライト | highlight.js（`public/vendor/` に同梱） | 11.x | 本文中のコード表示 |
-| 静的解析 | Larastan | 3.x（level max） | |
+| 静的解析 | Larastan | 3.x（level max） | `parseModelCastsMethod: true`（モデルの `casts()` の中身を読み、Enum・日付のキャスト後の型で解析する。既定では戻り値の型 `array` しか見ず、キャストが無視される） |
 | 整形 | Laravel Pint | `laravel` プリセット + `declare_strict_types` | |
 | テスト | Pest | 5.x | |
 | CI | GitHub Actions | | |

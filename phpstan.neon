@@ -3,6 +3,8 @@ includes:
 
 parameters:
     level: max
+    # モデルの casts() メソッドの中身を読み、キャスト後の型（Enum・日付など）で解析する
+    parseModelCastsMethod: true
     paths:
         - app
         - bootstrap/app.php

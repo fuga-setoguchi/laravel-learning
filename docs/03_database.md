@@ -13,7 +13,10 @@
 - 日時はAsia/Tokyoで保存する。日付だけで扱う値（次回の復習日、回答日）は `date` 型とする
 - 日付の列は `date` 型で、Eloquentでは `immutable_date` にキャストする。比較は日付型として行われるため、`next_review_on <= 今日` で期限当日も含まれる（クエリには `$today->toDateString()` を渡す）
 - 日時の列は `timestamp(0) without time zone`（Laravelの `timestamps()` の既定）。Asia/Tokyo の値をそのまま保存する
-- 値の範囲・列挙値は、アプリの検証に加えてDBの CHECK 制約でも守る（下表の「制約」。マイグレーションでの書き方は実装時に確認する）
+- 値の範囲・列挙値は、アプリの検証に加えてDBの CHECK 制約でも守る（下表の「制約」）。Laravel 13 のスキーマビルダーには CHECK 制約のメソッドがないため、次のように書く
+  - 列挙値: `$table->enum('type', QuestionType::values())`。PostgreSQL では `varchar(255)` + `CHECK (type IN (...))` になる。値の一覧はEnumから取り、二重管理しない
+  - 範囲: `DB::statement('ALTER TABLE review_states ADD CONSTRAINT review_states_stage_check CHECK (stage BETWEEN 1 AND 6)')`
+- 外部キーの削除時の動作: 出典・選択肢（教材の子で、取り込みで作り直すもの）は `cascadeOnDelete`。学習記録からの参照は既定（削除を拒否）とし、教材の行が消されて学習記録が巻き込まれることを防ぐ
 - 列挙値は文字列で保存し、PHPのBacked Enumでキャストする
 
 ## 2. ER図
@@ -77,7 +80,7 @@ chapters 1─* lessons 1─* lesson_sources
 | --- | --- | --- | --- | --- |
 | id | string(24) | × | PK | 問題の固定id（例: `ch03-l02-c1`、`ch03-l02-q1`） |
 | lesson_id | string(16) | × | FK → lessons.id | |
-| type | string(16) | × | CHECK（列挙値） | `recall` / `choice` / `code_review`（`QuestionType`） |
+| type | enum（varchar + CHECK） | × | CHECK（列挙値） | `recall` / `choice` / `code_review`（`QuestionType`） |
 | position | integer | × | | レッスン内の順番（想起カード → 問題の順） |
 | prompt | text | × | | 問題文（Markdown） |
 | code | text | ○ | | AIコードレビュー問題のコード。それ以外はNULL |
@@ -133,8 +136,8 @@ chapters 1─* lessons 1─* lesson_sources
 | --- | --- | --- | --- | --- |
 | id | integer | × | PK（自動採番） | |
 | question_id | string(24) | × | FK → questions.id | |
-| mode | string(16) | × | CHECK（列挙値） | `scheduled`（期限による出題）/ `practice`（再出題）（`ReviewMode`） |
-| result | string(16) | × | CHECK（列挙値） | `remembered` / `vague` / `forgot` / `correct` / `incorrect`（`ReviewResult`） |
+| mode | enum（varchar + CHECK） | × | CHECK（列挙値） | `scheduled`（期限による出題）/ `practice`（再出題）（`ReviewMode`） |
+| result | enum（varchar + CHECK） | × | CHECK（列挙値） | `remembered` / `vague` / `forgot` / `correct` / `incorrect`（`ReviewResult`） |
 | choice_key | string(1) | ○ | | 選択式で選んだ選択肢の `key`。想起カードはNULL |
 | stage_before | integer | ○ | | 回答前の段階。練習はNULL |
 | stage_after | integer | ○ | | 回答後の段階。練習はNULL |
@@ -171,3 +174,6 @@ chapters 1─* lessons 1─* lesson_sources
 
 - 全モデルで `Model::shouldBeStrict()`（遅延ロード・存在しない属性・黙って捨てられる代入を例外にする）を開発・テスト時に有効にする
 - マスアサインメントは `$fillable` を明示する（`$guarded = []` は使わない）
+- 列挙型（`app/Enums`）は、値の一覧を返す `values(): list<string>` を持つ（マイグレーションの CHECK 制約と、検証規則で使う）
+- `PreQuestion`（`app/ValueObjects`）は `Castable` を実装し、`prompt`・`choices`（`Choice` の一覧。`key` と `body`）・`answer`・`explanation` を持つ readonly クラスとする
+- ファクトリは全モデルに用意する。学習記録のファクトリには、テストで使う状態（`ReviewState::due()` / `notDue()`、`ReviewLog::scheduled()` / `practice()` / `failedOn()` など）を用意する
