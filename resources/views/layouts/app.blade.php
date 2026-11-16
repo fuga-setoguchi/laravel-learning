@@ -17,6 +17,7 @@
             </ul>
             <ul>
                 <li><a href="{{ route('home') }}">ホーム</a></li>
+                <li><a href="{{ route('curriculum') }}">カリキュラム</a></li>
                 <li><a href="{{ route('review.show') }}">復習</a></li>
             </ul>
         </nav>

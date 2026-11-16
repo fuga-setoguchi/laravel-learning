@@ -163,7 +163,7 @@ chapters 1─* lessons 1─* lesson_sources
 
 | モデル | 主キー | 主なリレーション・スコープ・キャスト |
 | --- | --- | --- |
-| Chapter | `id`（int、自動採番しない） | `hasMany(Lesson)` |
+| Chapter | `id`（int、自動採番しない） | `hasMany(Lesson)`。スコープ `active()`（`retired_at IS NULL`） |
 | Lesson | `id`（string、`$incrementing = false`、`$keyType = 'string'`） | `belongsTo(Chapter)`、`hasMany(LessonSource)`、`hasMany(Question)`、`hasOne(LessonProgress)`。スコープ `active()`（`retired_at IS NULL`）、`inCurriculumOrder()`（章番号・順番の昇順）。`Lesson::nextToStudy()` で「次に受講するレッスン」（有効で未完了のうち、章番号・順番が最も前のもの。SCR-01・SCR-03・SCR-04 で共通）を返す。ルートモデル結合では引退したレッスンを見つからない扱い（404）にする。`pre_question` は `PreQuestion` 値オブジェクトへキャスト |
 | LessonSource | `id` | `belongsTo(Lesson)` |
 | Question | `id`（string） | `belongsTo(Lesson)`、`hasMany(QuestionChoice)`、`hasOne(ReviewState)`、`hasMany(ReviewLog)`。スコープ `active()`（問題とレッスンの両方が引退していない）。`type` は `QuestionType` |
