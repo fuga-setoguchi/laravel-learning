@@ -7,6 +7,7 @@ use App\Enums\ReviewResult;
 use App\Models\Lesson;
 use App\Models\ReviewState;
 use App\Review\ReviewQueue;
+use App\Review\TodayReviewStatus;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\ReviewFixture;
@@ -170,6 +171,25 @@ it('LOGIC-T29 候補の件数によらず、クエリ数は一定', function ():
 
     expect($countQueries(50))->toBe($countQueries(5));
 });
+
+it('LOGIC-T50 今日の復習の状態と次回の復習日を判定する', function (Closure $arrange, TodayReviewStatus $status, ?string $nextReviewOn): void {
+    $arrange();
+
+    $summary = $this->queue->summary($this->today);
+
+    expect($summary->status)->toBe($status)
+        ->and($summary->nextReviewOn?->toDateString())->toBe($nextReviewOn);
+})->with([
+    '残りあり' => [fn () => [ReviewFixture::due('2026-12-01'), ReviewFixture::due('2026-12-03')], TodayReviewStatus::InProgress, '2026-12-03'],
+    '未登録' => [fn () => ReviewFixture::question(), TodayReviewStatus::NotStarted, null],
+    '完了' => [function (): void {
+        ReviewFixture::log(ReviewFixture::due('2026-12-04'), ReviewResult::Remembered, '2026-12-01 08:00');
+    }, TodayReviewStatus::Completed, '2026-12-04'],
+    '予定なし' => [fn () => ReviewFixture::due('2026-12-05'), TodayReviewStatus::NothingDue, '2026-12-05'],
+    '引退した問題だけ登録あり' => [function (): void {
+        ReviewFixture::due('2026-12-02')->update(['retired_at' => now()]);
+    }, TodayReviewStatus::NotStarted, null],
+]);
 
 it('LOGIC-T29b 出題する問題には、レッスン・章・選択肢・段階と最新の回答idが付いている', function (): void {
     $question = ReviewFixture::due('2026-12-01', type: 'choice', stage: 3);

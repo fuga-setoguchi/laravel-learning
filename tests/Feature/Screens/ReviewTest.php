@@ -206,7 +206,7 @@ it('SCR-04-T14 想起カードの回答の結果画面は404', function (): void
     $this->get(route('review.answers.show', $log))->assertNotFound();
 });
 
-it('SCR-04-T15 問題がなければ、完了画面に今日の集計と次のレッスンが表示される', function (): void {
+it('SCR-04-T15 今日の問題にすべて回答済みなら、完了と今日の集計、次回の復習日、次のレッスンが表示される', function (): void {
     foreach ([ReviewResult::Remembered, ReviewResult::Correct, ReviewResult::Vague] as $result) {
         ReviewFixture::log(ReviewFixture::due('2026-12-05'), $result, '2026-12-01 08:00');
     }
@@ -223,14 +223,27 @@ it('SCR-04-T15 問題がなければ、完了画面に今日の集計と次の�
         ->assertSee('今日の復習は完了しました')
         ->assertSee('今日の回答: 4 問')
         ->assertSee('正解・思い出せた 2 / あいまい 1 / 不正解・思い出せなかった 1')
+        ->assertSee('次回の復習: 2026-12-02')
         ->assertSee('次のレッスン:')
         ->assertSee('次に受講するレッスン');
 });
 
-it('SCR-04-T15 今日回答した問題がなければ、その旨を表示する', function (): void {
+it('SCR-04-T20 復習に登録済みの問題がなければ、まだ復習する問題がないと表示する', function (): void {
     $this->get(route('review.show'))
         ->assertOk()
-        ->assertSee('今日復習する問題はありませんでした。');
+        ->assertSee('まだ復習する問題はありません。')
+        ->assertDontSee('今日の復習は完了しました')
+        ->assertDontSee('今日の回答:');
+});
+
+it('SCR-04-T21 登録はあるが今日が期限の問題がなく、今日は回答していなければ、予定なしと次回の復習日を表示する', function (): void {
+    ReviewFixture::due('2026-12-03');
+
+    $this->get(route('review.show'))
+        ->assertOk()
+        ->assertSee('今日復習する問題はありません。')
+        ->assertSee('次回の復習: 2026-12-03')
+        ->assertDontSee('今日の回答:');
 });
 
 it('SCR-04-T16 途中で再読み込みしても、続きの同じ問題が表示される', function (): void {

@@ -5,23 +5,23 @@
 
     <article>
         <header><strong>① 今日の復習</strong></header>
-        @if ($remaining->total > 0)
+        @if ($summary->status === App\Review\TodayReviewStatus::InProgress)
             <p>
-                残り {{ $remaining->total }} 問
-                @if ($remaining->practice > 0)
-                    （うち再出題 {{ $remaining->practice }} 問）
+                残り {{ $summary->remaining->total }} 問
+                @if ($summary->remaining->practice > 0)
+                    （うち再出題 {{ $summary->remaining->practice }} 問）
                 @endif
             </p>
             <p><a href="{{ route('review.show') }}" role="button">復習を始める</a></p>
         @else
-            <p>今日の復習は完了しました。</p>
+            <x-today-review-status :summary="$summary" />
         @endif
     </article>
 
     <article>
         <header>
             <strong>② 次のレッスン</strong>
-            @if ($remaining->total > 0)
+            @if ($summary->status === App\Review\TodayReviewStatus::InProgress)
                 <small>復習を終えてから進めましょう</small>
             @endif
         </header>
