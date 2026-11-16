@@ -19,7 +19,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', 'pgsql'),
 
     /*
     |--------------------------------------------------------------------------
@@ -37,8 +37,7 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            // 省略時は絶対パスの学習用DB。相対パスは php artisan serve（作業ディレクトリが public/）で別の場所を指すため使わない
-            'database' => env('DB_DATABASE', database_path('learning.sqlite')),
+            'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout' => null,

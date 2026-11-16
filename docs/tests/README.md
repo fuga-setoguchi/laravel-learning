@@ -15,7 +15,7 @@
 
 ## 2. 方針
 
-- DBはメモリ上のSQLite（`phpunit.xml` で `DB_DATABASE=:memory:`）を使い、`RefreshDatabase` で毎回初期化する
+- DBはDockerのPostgreSQLのテスト用データベース `testing`（`phpunit.xml` で `force` 指定）を使い、`RefreshDatabase` で初期化する（最初に1回 `migrate:fresh`、各テストはトランザクションで巻き戻す）。テストの前に `docker compose up -d` が必要
 - 時刻は `$this->travelTo(CarbonImmutable::parse('2026-12-01 09:00', 'Asia/Tokyo'))` などで固定する。日付の境界（0時）をまたぐテストを含める
 - テストデータはモデルファクトリで作る。`ReviewState` / `ReviewLog` のファクトリには「期限が来た」「今日不正解」などの状態（`state`）を用意する
 - 教材取り込みのテストは `tests/Fixtures/content/` の教材フォルダを `--path` で指定する。正常な教材一式（`valid/`）と、エラーごとの最小のファイルを用意する。エラーのファイルは、テスト内で正常な教材をコピーして一部を書き換えて作ってもよい
@@ -44,4 +44,4 @@
 | --- | --- |
 | ENV-T01 | テスト内で `DB::prohibitDestructiveCommands(true)` を直接呼んだ後、`migrate:fresh` が実行されず失敗する（設定は起動時に読まれるため、テストでは設定値ではなく直接呼ぶ）。あわせて `AppServiceProvider` が `config('learning.db_protected')` の値を渡していることを確認する |
 | ENV-T02 | `LEARNING_DB_PROTECTED=false` のとき、`migrate:fresh` が実行できる |
-| ENV-T03 | テスト実行時の接続先が `:memory:` である（安全装置は `tests/TestCase.php` の `createApplication()`） |
+| ENV-T03 | テスト実行時の接続先が `pgsql` の `testing` である（安全装置は `tests/TestCase.php` の `createApplication()`） |

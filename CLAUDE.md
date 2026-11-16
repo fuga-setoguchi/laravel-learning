@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Laravel学習アプリ（ローカル専用・1人利用）。Laravel 13 / PHP 8.4 / Blade / SQLite / Pest / Larastan。
+Laravel学習アプリ（ローカル専用・1人利用）。Laravel 13 / PHP 8.4 / Blade / PostgreSQL 18（Docker、DBのみ）/ Pest / Larastan。
 
 ## 必ず守ること
 
@@ -12,8 +12,9 @@ Laravel学習アプリ（ローカル専用・1人利用）。Laravel 13 / PHP 8
 
 ## 学習用DBを守る
 
-- `database/learning.sqlite` は学習記録そのもの。消す・作り直す操作をしない
-- `migrate:fresh` などは、開発用DB（`--env=dev`）かテストでのみ使う
+- PostgreSQL のデータベース `learning` は学習記録そのもの。消す・作り直す操作をしない
+- `migrate:fresh` などは、開発用DB（`learning_dev`、`--env=dev`）かテスト（`testing`）でのみ使う
+- `docker compose down -v`、`docker volume rm laravel-learning-pgdata`、`docker volume prune -a` を実行しない
 - `php artisan config:cache` を実行しない
 - `.env` / `.env.dev` は読まない・書き換えない（変更が必要なら利用者に依頼する）
 

@@ -40,7 +40,8 @@
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
-            "@php -r \"file_exists('database/learning.sqlite') || touch('database/learning.sqlite');\"",
+            "docker volume create laravel-learning-pgdata",
+            "docker compose up -d --wait",
             "@php artisan migrate"
         ],
         "dev": [

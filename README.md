@@ -7,40 +7,49 @@ Laravelの概念・設計判断・ベストプラクティスを、想起練習�
 
 ## 必要なもの
 
-- PHP 8.4 以上（pdo_sqlite）
+- PHP 8.4 以上（pdo_pgsql）
 - Composer
-- sqlite3 コマンド（バックアップ用）
+- Docker（DBの PostgreSQL のみ。PHPはローカルで動かす）
 
-Node.js・Dockerは不要。
+Node.jsは不要。
 
 ## セットアップ
 
 ```bash
-composer setup   # 依存関係のインストール、.env の作成、学習用DB（database/learning.sqlite）の作成とマイグレーション
+composer setup   # 依存関係、.env、DBのボリューム作成、PostgreSQLの起動、マイグレーション
 php artisan serve
 ```
 
 ブラウザで http://127.0.0.1:8000 を開く。
 
-## DBファイル
+## 毎日の起動
 
-学習記録を消さないため、用途ごとにDBを分けている（[方式設計書 4章](docs/02_architecture.md)）。
+```bash
+docker compose up -d
+php artisan serve
+```
 
-| 用途 | 起動 | 環境ファイル | DB |
+## データベース
+
+学習記録を消さないため、1つの PostgreSQL の中で用途ごとにデータベースを分けている（[方式設計書 4章](docs/02_architecture.md)）。
+
+| 用途 | 起動 | 環境ファイル | データベース |
 | --- | --- | --- | --- |
-| 学習 | `php artisan serve` | `.env` | `database/learning.sqlite` |
-| 開発中の動作確認 | `APP_ENV=dev php artisan serve --port=8001` | `.env.dev` | `.env.dev` の `DB_DATABASE` |
-| 自動テスト | `composer test` | `phpunit.xml` | メモリ上 |
+| 学習 | `php artisan serve` | `.env` | `learning` |
+| 開発中の動作確認 | `APP_ENV=dev php artisan serve --port=8001` | `.env.dev` | `learning_dev` |
+| 自動テスト | `composer test` | `phpunit.xml` | `testing` |
 
-- 学習用DBでは `migrate:fresh`・`migrate:refresh`・`migrate:reset`・`migrate:rollback`・`db:wipe` が実行できない（`LEARNING_DB_PROTECTED=true`）
+- データは外部ボリューム `laravel-learning-pgdata` に保存する。`docker compose down -v` では消えない
+- 次のコマンドは実行しない（学習記録が消える）
+  - `docker volume rm laravel-learning-pgdata`、`docker volume prune -a`
+  - 学習用DBでの `migrate:fresh`・`migrate:refresh`・`migrate:reset`・`migrate:rollback`・`db:wipe`（`LEARNING_DB_PROTECTED=true` で禁止している）
 - `php artisan config:cache` は使わない（テストが学習用DBに向く。テストには安全装置があるが、そもそも使わない）
 
 開発用DBの準備:
 
 ```bash
-cp .env.dev.example .env.dev   # DB_DATABASE を絶対パスに書き換える
+cp .env.dev.example .env.dev
 php artisan key:generate --env=dev
-touch database/dev.sqlite
 php artisan migrate --env=dev
 ```
 
@@ -49,12 +58,18 @@ php artisan migrate --env=dev
 週1回と、`migrate` の実行前・教材の取り込み前に行う。バックアップ先はリポジトリの外にする。
 
 ```bash
-sqlite3 database/learning.sqlite ".backup '$HOME/Library/Mobile Documents/com~apple~CloudDocs/laravel-learning-backup/learning-$(date +%Y%m%d).sqlite'"
+docker compose exec -T db pg_dump -U app -Fc learning > "$HOME/Library/Mobile Documents/com~apple~CloudDocs/laravel-learning-backup/learning-$(date +%Y%m%d).dump"
 ```
 
-（`cp` は書き込み中にコピーすると壊れる可能性があるため、`.backup` を使う）
+復元:
+
+```bash
+docker compose exec -T db pg_restore -U app -d learning --clean --if-exists < <バックアップファイル>
+```
 
 ## 品質チェック
+
+テストの前に `docker compose up -d` でDBを起動しておく。
 
 ```bash
 composer lint      # Pint（整形チェック）。composer format で整形

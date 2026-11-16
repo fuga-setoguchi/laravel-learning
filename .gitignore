@@ -29,6 +29,3 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
-# 学習記録を含むDBはgitで管理しない（docs/02_architecture.md 4章）
-/database/*.sqlite
-/database/*.sqlite-*

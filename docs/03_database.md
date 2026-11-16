@@ -6,12 +6,14 @@
 
 ## 1. 方針
 
-- DBはSQLite。外部キー制約を有効にする（Laravelの既定 `DB_FOREIGN_KEYS=true`）
+- DBはPostgreSQL 18。外部キー制約は常に有効
 - テーブルを「教材」と「学習記録」に分ける。取り込み（CMD-01）が書き込むのは教材のテーブルだけで、学習記録のテーブルには触れない
 - 教材のレッスン・問題は、教材ファイルに書かれた固定のid（文字列）を主キーにする。取り込み直しても同じ行を更新するため、学習記録の外部キーが保たれる
 - 教材のレッスン・問題は物理削除しない。ファイルから消えたものは `retired_at` を設定して引退させる
 - 日時はAsia/Tokyoで保存する。日付だけで扱う値（次回の復習日、回答日）は `date` 型とする
-- SQLiteには日付型がなく、値は文字列で保存・比較される。Eloquentの標準の日付キャストは `Y-m-d H:i:s` 形式で書き込むため、`next_review_on <= '2026-12-01'` のような文字列比較で期限当日が漏れる。日付の列は独自のキャスト `App\Casts\DateOnly`（保存は `Y-m-d`、読み出しは `CarbonImmutable` の0時）を使い、クエリには必ず `$today->toDateString()` を渡す。期限当日の境界はテスト LOGIC-T18 で担保する
+- 日付の列は `date` 型で、Eloquentでは `immutable_date` にキャストする。比較は日付型として行われるため、`next_review_on <= 今日` で期限当日も含まれる（クエリには `$today->toDateString()` を渡す）
+- 日時の列は `timestamp(0) without time zone`（Laravelの `timestamps()` の既定）。Asia/Tokyo の値をそのまま保存する
+- 値の範囲・列挙値は、アプリの検証に加えてDBの CHECK 制約でも守る（下表の「制約」。マイグレーションでの書き方は実装時に確認する）
 - 列挙値は文字列で保存し、PHPのBacked Enumでキャストする
 
 ## 2. ER図
@@ -51,7 +53,7 @@ chapters 1─* lessons 1─* lesson_sources
 | title | string | × | | |
 | body | text | × | | 本文（Markdown） |
 | laravel_version | string(16) | × | | 例: `13.x` |
-| pre_question | json | × | | 事前の問い（4章） |
+| pre_question | jsonb | × | | 事前の問い（4章） |
 | retired_at | datetime | ○ | | 引退した日時。NULLなら有効 |
 | created_at / updated_at | datetime | ○ | | |
 
@@ -75,7 +77,7 @@ chapters 1─* lessons 1─* lesson_sources
 | --- | --- | --- | --- | --- |
 | id | string(24) | × | PK | 問題の固定id（例: `ch03-l02-c1`、`ch03-l02-q1`） |
 | lesson_id | string(16) | × | FK → lessons.id | |
-| type | string(16) | × | | `recall` / `choice` / `code_review`（`QuestionType`） |
+| type | string(16) | × | CHECK（列挙値） | `recall` / `choice` / `code_review`（`QuestionType`） |
 | position | integer | × | | レッスン内の順番（想起カード → 問題の順） |
 | prompt | text | × | | 問題文（Markdown） |
 | code | text | ○ | | AIコードレビュー問題のコード。それ以外はNULL |
@@ -117,7 +119,7 @@ chapters 1─* lessons 1─* lesson_sources
 | カラム | 型 | NULL | 制約・既定値 | 説明 |
 | --- | --- | --- | --- | --- |
 | question_id | string(24) | × | PK、FK → questions.id | |
-| stage | integer | × | 1〜6 | 段階 |
+| stage | smallint | × | CHECK（1〜6） | 段階 |
 | next_review_on | date | × | | 次回の復習日 |
 | last_reviewed_at | datetime | ○ | | 最後に段階を更新した日時（練習は含めない） |
 | created_at / updated_at | datetime | ○ | | |
@@ -131,8 +133,8 @@ chapters 1─* lessons 1─* lesson_sources
 | --- | --- | --- | --- | --- |
 | id | integer | × | PK（自動採番） | |
 | question_id | string(24) | × | FK → questions.id | |
-| mode | string(16) | × | | `scheduled`（期限による出題）/ `practice`（再出題）（`ReviewMode`） |
-| result | string(16) | × | | `remembered` / `vague` / `forgot` / `correct` / `incorrect`（`ReviewResult`） |
+| mode | string(16) | × | CHECK（列挙値） | `scheduled`（期限による出題）/ `practice`（再出題）（`ReviewMode`） |
+| result | string(16) | × | CHECK（列挙値） | `remembered` / `vague` / `forgot` / `correct` / `incorrect`（`ReviewResult`） |
 | choice_key | string(1) | ○ | | 選択式で選んだ選択肢の `key`。想起カードはNULL |
 | stage_before | integer | ○ | | 回答前の段階。練習はNULL |
 | stage_after | integer | ○ | | 回答後の段階。練習はNULL |
@@ -164,8 +166,8 @@ chapters 1─* lessons 1─* lesson_sources
 | Question | `id`（string） | `belongsTo(Lesson)`、`hasMany(QuestionChoice)`、`hasOne(ReviewState)`、`hasMany(ReviewLog)`。スコープ `active()`（問題とレッスンの両方が引退していない）。`type` は `QuestionType` |
 | QuestionChoice | `id` | `belongsTo(Question)` |
 | LessonProgress | `lesson_id`（string） | `belongsTo(Lesson)` |
-| ReviewState | `question_id`（string） | `belongsTo(Question)`。`next_review_on` は `DateOnly` |
-| ReviewLog | `id` | `belongsTo(Question)`。`mode` は `ReviewMode`、`result` は `ReviewResult`、`answered_on` は `DateOnly` |
+| ReviewState | `question_id`（string） | `belongsTo(Question)`。`next_review_on` は `immutable_date` |
+| ReviewLog | `id` | `belongsTo(Question)`。`mode` は `ReviewMode`、`result` は `ReviewResult`、`answered_on` は `immutable_date` |
 
 - 全モデルで `Model::shouldBeStrict()`（遅延ロード・存在しない属性・黙って捨てられる代入を例外にする）を開発・テスト時に有効にする
 - マスアサインメントは `$fillable` を明示する（`$guarded = []` は使わない）

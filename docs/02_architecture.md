@@ -7,19 +7,23 @@
 ## 1. システム構成
 
 ```
-┌──────────── ローカルPC ─────────────────────────────────────┐
-│                                                            │
-│  ブラウザ ──HTTP──▶ php artisan serve（Laravel / Blade）      │
-│     │                    │                                  │
-│                          │ Eloquent                         │
-│                          ▼                                  │
-│                      database/learning.sqlite（学習用DB）     │
-│                                                            │
-│  content/*.md ──php artisan lessons:import──▶ 学習用DB        │
-└────────────────────────────────────────────────────────────┘
+┌──────────── ローカルPC ──────────────────────────────────────────┐
+│                                                                 │
+│  ブラウザ ──HTTP──▶ php artisan serve（Laravel / Blade）           │
+│                          │                                       │
+│                          │ Eloquent（127.0.0.1:5432）             │
+│                          ▼                                       │
+│                  ┌─ Docker: db（PostgreSQL）──────────────┐       │
+│                  │  learning（学習用）                     │       │
+│                  │  learning_dev（開発用） / testing（テスト用）│       │
+│                  └─ 外部ボリューム laravel-learning-pgdata ─┘       │
+│                                                                 │
+│  content/*.md ──php artisan lessons:import──▶ learning           │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-- 1つのLaravelアプリのみで構成する。キュー・スケジューラ・Node.js・Dockerは使わない
+- Laravelアプリ（PHPはローカルで実行）と、DockerのPostgreSQLの2つで構成する。キュー・スケジューラ・Node.jsは使わない
+- PHPまでコンテナに入れない理由: 毎日の起動の手間を最小にし、PHPの実行環境を1つにするため（DBだけをDockerにする）
 - リポジトリのルートがLaravelのプロジェクトルート。設計書は `docs/`、教材は `content/` に置く
 
 ## 2. 技術スタック
@@ -30,7 +34,8 @@
 | --- | --- | --- | --- |
 | 言語 | PHP | 8.4（ローカルの版に合わせる。CIも8.4） | |
 | フレームワーク | Laravel | 13.x（13.42） | |
-| DB | SQLite | PHP同梱 | 学習用・開発用・テスト用でファイルを分ける（4章） |
+| DB | PostgreSQL（Docker、`postgres:18`） | 18.x | 学習用・開発用・テスト用でデータベースを分ける（4章） |
+| コンテナ | Docker Compose | | DBのみ（`compose.yaml`） |
 | 画面 | Blade + Bladeコンポーネント | Laravel同梱 | |
 | CSS | Pico CSS（classless版、`public/vendor/` に同梱） | 2.x | Node.jsなしで最低限の見た目を整える |
 | Markdown | league/commonmark（`Str::markdown`） | Laravel同梱 | 本文・問題文の表示 |
@@ -67,7 +72,6 @@ app/
 ├── Actions/
 │   ├── CompleteLesson.php / CompleteLessonResult.php      # レッスン完了 + 復習への登録
 │   └── RecordReviewAnswer.php / Recorded.php / Rejected.php # 回答の検証・記録・段階の更新
-├── Casts/DateOnly.php                          # 日付を Y-m-d で保存（03_database 1章）
 ├── ValueObjects/PreQuestion.php                # lessons.pre_question のキャスト先
 ├── Enums/
 │   ├── QuestionType.php                        # recall / choice / code_review
@@ -155,34 +159,49 @@ content/
 | 記録しない送信（期限前・二重送信・対象外の練習） | 記録せず `review.show` へリダイレクトし、フラッシュメッセージで理由を表示する。エラーではない |
 | 取り込みの検証エラー | コマンドがファイル名・項目・理由を一覧表示し、終了コード1で終わる |
 
-## 4. 環境とデータベースファイル
+## 4. 環境とデータベース
 
-学習記録を消さないため、用途ごとにDBファイルを分ける。
+学習記録を消さないため、1つのPostgreSQLの中で、用途ごとにデータベースを分ける。
 
-| 用途 | 起動方法 | 環境ファイル | DB |
+| 用途 | 起動方法 | 環境ファイル | データベース |
 | --- | --- | --- | --- |
-| 学習（毎日使う） | `php artisan serve` | `.env`（`APP_ENV=local`、`DB_DATABASE` は書かない） | `database/learning.sqlite`（`config/database.php` の既定値。`database_path()` による絶対パス） |
-| 開発中の動作確認 | `APP_ENV=dev php artisan serve --port=8001`。Artisanコマンドは `--env=dev` を付ける | `.env.dev` | `database/dev.sqlite` |
-| 自動テスト | `composer test` | `phpunit.xml` | `:memory:` |
+| 学習（毎日使う） | `docker compose up -d` → `php artisan serve` | `.env`（`APP_ENV=local`） | `learning` |
+| 開発中の動作確認 | `APP_ENV=dev php artisan serve --port=8001`。Artisanコマンドは `--env=dev` を付ける | `.env.dev` | `learning_dev` |
+| 自動テスト | `composer test` | `phpunit.xml`（`DB_CONNECTION=pgsql`、`DB_DATABASE=testing` を `force` で固定） | `testing` |
 
-- `DB_DATABASE` を書く場合は絶対パスにする（`php artisan serve` の子プロセスは `public/` を作業ディレクトリにするため、相対パスは別の場所を指す。`ServeCommand` のソースで確認済み）。学習用は既定値（絶対パス）を使い、`.env` には書かない
+### 4.1 Docker（compose.yaml）
+
+| 項目 | 内容 |
+| --- | --- |
+| サービス | `db` のみ。イメージ `postgres:18`（メジャーバージョンを固定） |
+| ポート | `127.0.0.1:${FORWARD_DB_PORT:-5432}:5432`（外部から接続させない。他のプロジェクトと重なる場合は `FORWARD_DB_PORT` で変える） |
+| ユーザー | `app` / `secret`（ローカル専用・外部に公開しないため固定値でよい） |
+| データベースの作成 | `learning` は `POSTGRES_DB` で作る。`learning_dev` と `testing` は `docker/postgres/init/` の初期化SQLで作る（データが空の初回起動時だけ実行される） |
+| データの保存先 | 外部ボリューム `laravel-learning-pgdata` を `/var/lib/postgresql` にマウントする（PostgreSQL 18 のイメージの推奨） |
+| ヘルスチェック | `pg_isready` |
+
+外部ボリューム（`external: true`）にする理由: Composeが作るボリュームは `docker compose down -v` で削除され、学習記録が消える。外部ボリュームはComposeの管理外なので、`down -v` でも削除されない。ボリュームは `composer setup` で `docker volume create laravel-learning-pgdata` により作成する（同名が既にあれば何もしない）。
+
+### 4.2 学習用DBの保護
+
 - アプリ固有の設定は `config/learning.php` にまとめる（`content_path`、`db_protected`）
 - `.env` に `LEARNING_DB_PROTECTED=true` を設定し、`AppServiceProvider` で `DB::prohibitDestructiveCommands(config('learning.db_protected'))` を呼ぶ。これにより `migrate:fresh`・`migrate:refresh`・`migrate:reset`・`migrate:rollback`・`db:wipe` が学習用DBでは実行できない（Laravel 13.42 のソースで確認済み。テスト ENV-T01 で担保）。`config/learning.php` の既定値は `true` とし、設定漏れでも保護される側に倒す。`migrate`（追加のみ）は実行できる
 - `.env.dev` と `phpunit.xml` では `LEARNING_DB_PROTECTED=false`
-- `php artisan config:cache` は使わない。設定がキャッシュされていると、テスト実行時に `phpunit.xml` の `DB_DATABASE=:memory:` が効かず、学習用DBに対してテストが走り記録が消える。`tests/TestCase.php` の `createApplication()` で、接続先のDBが `:memory:` でなければテストを中断する安全装置を入れる（`setUp()` では `RefreshDatabase` が先に動くため、アプリ生成の直後に確認する）
+- `docker compose down -v`、`docker volume rm laravel-learning-pgdata`、`docker volume prune -a` を実行しない（外部ボリュームで `down -v` からは守られるが、ボリュームを直接消す操作は防げない）
+- `php artisan config:cache` は使わない。設定がキャッシュされていると、テスト実行時に `phpunit.xml` の `DB_DATABASE=testing` が効かず、学習用DBに対してテストが走り記録が消える。`tests/TestCase.php` の `createApplication()` で、接続先が `pgsql` の `testing` でなければテストを中断する安全装置を入れる（`setUp()` では `RefreshDatabase` が先に動くため、アプリ生成の直後に確認する）
 - `APP_ENV=dev php artisan serve` では、`serve` が子プロセスに `APP_ENV` を渡し（`ServeCommand::$passthroughVariables`）、子プロセスが `.env.dev` を読み込む（ソースで確認済み。実際の起動確認は `.env.dev` 作成後に行う）
-- `*.sqlite` はgitで管理しない
 
-### 4.1 バックアップ
+### 4.3 バックアップ
 
-- 手順: `sqlite3 database/learning.sqlite ".backup '<バックアップ先>/learning-YYYYMMDD.sqlite'"`（`cp` は書き込み中だと壊れる可能性があるため `.backup` を使う）
+- 手順: `docker compose exec -T db pg_dump -U app -Fc learning > <バックアップ先>/learning-YYYYMMDD.dump`（カスタム形式。DBを止めずに一貫した内容で書き出せる）
+- 復元: `docker compose exec -T db pg_restore -U app -d learning --clean --if-exists < <バックアップファイル>`
 - 頻度: 週1回と、`migrate` の実行前・教材の取り込み前
 - バックアップ先: リポジトリの外（iCloud Drive など）
 - 手順はREADMEに記載する
 
 ## 5. CI（GitHub Actions）
 
-URL短縮サービスの `ci.yml` を元に、MySQL・フロントエンド・OpenAPIのジョブを除いた1ジョブとする。
+URL短縮サービスの `ci.yml` を元に、MySQLをPostgreSQL（`postgres:18` のサービスコンテナ、データベース `testing`）に置き換え、フロントエンド・OpenAPIのジョブを除いた1ジョブとする。
 
 | ステップ | コマンド |
 | --- | --- |
@@ -191,7 +210,7 @@ URL短縮サービスの `ci.yml` を元に、MySQL・フロントエンド・Op
 | 整形チェック | `composer lint`（`pint --test`） |
 | 静的解析 | `composer analyse`（`phpstan analyse`） |
 | テスト | `composer test`（`pest`） |
-| 教材の検証（CMD-01 の実装時に追加） | `touch database/ci.sqlite && php artisan migrate --force && php artisan lessons:import --dry-run`（`DB_DATABASE=database/ci.sqlite`。`:memory:` はコマンドごとに別のDBになるため、ファイルを使う） |
+| 教材の検証（CMD-01 の実装時に追加） | `php artisan migrate --force && php artisan lessons:import --dry-run`（`DB_DATABASE=testing`） |
 
 - 権限は `contents: read` のみ。actions はコミットハッシュで固定する
 - Larastanの対象は `app`、`config`、`database`、`routes`、`bootstrap/app.php`
@@ -213,7 +232,7 @@ URL短縮サービスの `ci.yml` を元に、MySQL・フロントエンド・Op
 
 計画書 10章の「実装」を以下の順で行う。各ステップでテストとLarastanを通してから次へ進む。
 
-1. 環境構築: Laravelプロジェクト作成、Pint・Larastan・Pest・CI設定、DBファイルの分離と保護（4章）
+1. 環境構築: Laravelプロジェクト作成、Pint・Larastan・Pest・CI設定、Docker（PostgreSQL）、データベースの分離と保護（4章）
 2. DB: マイグレーション、モデル、ファクトリ
 3. 教材の取り込み: CMD-01（パーサ → 検証 → 取り込み）とテスト用の教材フィクスチャ
 4. 復習ロジック: ReviewScheduler、NextQuestionPicker、ChoiceShuffler（単体テスト）

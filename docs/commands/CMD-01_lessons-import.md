@@ -105,5 +105,5 @@ WARN  content/ch01/l03.md: recall_cards が 2 件です（推奨 3〜5 件）
 
 ## 7. 補足
 
-- 学習用DBへの取り込み前にバックアップを取る（[02_architecture](../02_architecture.md) 4.1）
+- 学習用DBへの取り込み前にバックアップを取る（[02_architecture](../02_architecture.md) 4.3）
 - 取り込みはマイグレーション済みのDBが前提。テーブルがない場合はLaravelの例外のまま終了する

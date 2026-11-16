@@ -34,8 +34,9 @@ it('ENV-T02 学習用DBの保護が無効なとき、migrate:fresh を実行で�
     expect(Artisan::call('migrate:fresh', ['--force' => true]))->toBe(0);
 });
 
-it('ENV-T03 テストの接続先がメモリ上のSQLiteである', function (): void {
-    expect(config('database.connections.sqlite.database'))->toBe(':memory:');
+it('ENV-T03 テストの接続先がテスト用DB（pgsql の testing）である', function (): void {
+    expect(config('database.default'))->toBe('pgsql')
+        ->and(DB::connection()->getDatabaseName())->toBe('testing');
 });
 
 it('アプリのタイムゾーンが Asia/Tokyo で、日付が CarbonImmutable である', function (): void {
