@@ -40,7 +40,7 @@
 | CMD-01-T22 | 問題idの接頭辞がレッスンidと違う、想起カードに `-q` を付けた | `recall_cards.0.id` / `questions.0.id` |
 | CMD-01-T23 | `answer` が choices にない、`key` の重複、選択肢が1件・7件 | 該当項目 |
 | CMD-01-T24 | `code_review` に `code` がない / `choice` に `code` がある | `questions.0.code` |
-| CMD-01-T25 | 2つのファイルで同じ問題id | 両方のファイル名と問題id |
+| CMD-01-T25 | 同じファイルの中で問題idが重複（想起カード2枚が同じid） | `recall_cards.1.id`（重複） |
 | CMD-01-T26 | `chapters.yaml` の `number` が重複 / `title` がない | `chapters.0.number` など |
 | CMD-01-T27 | `chapters.yaml` にない章 | `chapter` |
 | CMD-01-T28 | `chapters.yaml` がない / 教材フォルダがない | エラーメッセージ |

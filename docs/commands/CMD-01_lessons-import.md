@@ -11,7 +11,7 @@
 | --- | --- |
 | コマンド | `php artisan lessons:import {--path=} {--dry-run}` |
 | クラス | `App\Console\Commands\ImportLessonsCommand` |
-| 処理の委譲先 | `LessonFileParser` → `LessonFileValidator` → `ContentImporter` |
+| 処理の委譲先 | `ContentLoader`（ファイルの収集）→ `LessonFileParser` → `LessonFileValidator` → `ContentImporter` |
 | 目的 | `content/` の教材を検証し、DBの教材テーブルに追加・更新・引退を反映する。学習記録には触れない |
 
 | オプション | 既定 | 内容 |
@@ -41,7 +41,7 @@
 | --- | --- | --- |
 | 解析 | front matter がない、YAMLの構文エラー、front matter が連想配列でない | `LessonFileParser`。YAMLの例外を捕まえてエラーにする |
 | ファイル単位 | 必須項目、型、正規表現、件数、`answer` が `choices` の `key` にあるか、`key` の重複、出典URLの形式とバージョン、idとファイル位置の一致、問題idの接頭辞 | `LessonFileValidator`。Laravel の `Validator::make()` の規則と、独自の規則クラス（`LaravelDocsUrl` など）、`after()` フック |
-| ファイルをまたぐ | 問題idの重複、`chapters.yaml` の `number` の重複、`chapter` が `chapters.yaml` にあるか（レッスンidと `order` はファイル位置との一致で一意になる） | `LessonFileValidator` |
+| ファイルをまたぐ | `chapters.yaml` の `number` の重複、`chapter` が `chapters.yaml` にあるか（レッスンidと `order` はファイル位置との一致で、問題idはレッスンidの接頭辞で、それぞれ一意になる。問題idのファイル内の重複はファイル単位で検証する） | `LessonFileValidator` |
 
 次の場合は、エラーではなく警告として表示し、取り込みは行う。
 
@@ -62,7 +62,7 @@ ERROR  教材の検証で 3 件のエラーがありました。DBは変更し�
 ```
 
 - 項目はドット区切りのパス（`questions.1.answer`、0始まり）で示す
-- メッセージは日本語。`lang/ja/validation.php` と独自のメッセージで定義する
+- メッセージは日本語。取り込み専用のメッセージとして `lang/ja/content.php` に定義し、`Validator::make()` の第3引数で渡す（`lang/ja/validation.php` は画面のフォームの検証で使うため、取り込み用の文面と分ける）
 
 ## 4. 反映の規則
 
@@ -84,7 +84,7 @@ ERROR  教材の検証で 3 件のエラーがありました。DBは変更し�
 
 ```
 教材を取り込みました。
-  章:     追加 1 / 更新 0
+  章:       追加 1 / 更新 0 / 引退 0 / 復活 0
   レッスン: 追加 3 / 更新 1 / 変更なし 10 / 引退 0 / 復活 0
   問題:    追加 15 / 更新 2 / 変更なし 50 / 引退 1 / 復活 0
 WARN  content/ch01/l03.md: recall_cards が 2 件です（推奨 3〜5 件）
