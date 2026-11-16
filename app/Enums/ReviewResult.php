@@ -19,4 +19,13 @@ enum ReviewResult: string
     // 選択式・AIコードレビュー問題の自動採点
     case Correct = 'correct';
     case Incorrect = 'incorrect';
+
+    public function grade(): Grade
+    {
+        return match ($this) {
+            self::Remembered, self::Correct => Grade::Pass,
+            self::Vague => Grade::Hold,
+            self::Forgot, self::Incorrect => Grade::Fail,
+        };
+    }
 }
