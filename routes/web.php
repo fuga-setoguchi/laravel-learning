@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\CurriculumController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
-// SCR-01 ホームは、実装の手順 7（docs/02_architecture.md 7章）で HomeController に置き換える
-Route::view('/', 'home')->name('home');
+// SCR-01 ホーム・SCR-02 カリキュラム
+Route::get('/', HomeController::class)->name('home');
+Route::get('curriculum', CurriculumController::class)->name('curriculum');
 
 // SCR-03 レッスン（docs/screens/SCR-03_lesson.md）
 Route::controller(LessonController::class)->prefix('lessons/{lesson}')->name('lessons.')->group(function (): void {
