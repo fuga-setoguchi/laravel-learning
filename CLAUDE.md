@@ -10,6 +10,11 @@ Laravel学習アプリ（ローカル専用・1人利用）。Laravel 13 / PHP 8
 - 全PHPファイルに `declare(strict_types=1)` と型宣言。Larastan は level max で、`@phpstan-ignore` やベースラインで黙らせない
 - 作業の完了前に `composer lint`、`composer analyse`、`composer test` をすべて通す
 
+## Gitの運用
+
+- `main` に直接コミットしない。`main` から作業ブランチ（例: `feature/lessons-import`、`chore/...`、`docs/...`）を切ってコミットし、PRを作成してマージする
+- プッシュとマージは利用者が行う
+
 ## 学習用DBを守る
 
 - PostgreSQL のデータベース `learning` は学習記録そのもの。消す・作り直す操作をしない
