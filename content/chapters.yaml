@@ -1,0 +1,28 @@
+# 章の定義（docs/04_content-format.md 2章）。タイトルは計画書 5章のカリキュラムに合わせる
+chapters:
+  - number: 1
+    title: Laravelの全体像
+  - number: 2
+    title: ディレクトリ構成と設定
+  - number: 3
+    title: サービスコンテナと依存性の注入
+  - number: 4
+    title: ルーティングとミドルウェア
+  - number: 5
+    title: コントローラーの責務
+  - number: 6
+    title: Eloquentとデータベース設計
+  - number: 7
+    title: バリデーションと認可
+  - number: 8
+    title: 非同期処理
+  - number: 9
+    title: テスト戦略
+  - number: 10
+    title: セキュリティ
+  - number: 11
+    title: 例外処理とログ
+  - number: 12
+    title: パフォーマンス
+  - number: 13
+    title: AIとの協働（総まとめ）

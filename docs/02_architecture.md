@@ -58,11 +58,15 @@ Laravel標準の構成に、以下を追加する。各クラスの置き場所�
 app/
 ├── Console/Commands/ImportLessonsCommand.php   # CMD-01。入出力のみ。処理は Content に委譲
 ├── Content/                                    # 教材の取り込み（ファイル → DB）
+│   ├── ContentLoader.php                       # 教材フォルダから chapters.yaml と chNN/lNN.md を集める
 │   ├── LessonFileParser.php                    # Markdown → front matter の配列 + 本文
 │   ├── LessonFileValidator.php                 # 配列の検証（Laravel の Validator を使う）
+│   ├── LessonFileParseException.php            # front matter を解析できない
+│   ├── TypedArray.php                          # 検証済みの配列から型を確かめて値を取り出す
 │   ├── ContentImporter.php                     # 検証済みの教材をトランザクションでDBへ反映
-│   ├── ImportResult.php                        # 追加・更新・変更なし・引退・復活の件数と警告（readonly）
-│   └── Data/ParsedLesson.php ほか              # 検証済みの教材を表す readonly クラス
+│   ├── ImportResult.php / ImportCounts.php / ImportStatus.php  # 追加・更新・変更なし・引退・復活の件数と警告
+│   ├── ContentValidationException.php          # 検証エラーの一覧（ファイルごと）を持つ例外
+│   └── Data/ParsedLesson.php ほか              # 検証済みの教材を表す readonly クラス（ContentSet にまとめる）
 ├── Review/                                     # 復習のドメインロジック
 │   ├── ReviewScheduler.php                     # 段階と次回の復習日の計算（純粋なクラス、DB不使用）
 │   ├── ScheduledState.php / Candidate.php      # 計算結果・出題候補（readonly）
@@ -72,7 +76,9 @@ app/
 ├── Actions/
 │   ├── CompleteLesson.php / CompleteLessonResult.php      # レッスン完了 + 復習への登録
 │   └── RecordReviewAnswer.php / Recorded.php / Rejected.php # 回答の検証・記録・段階の更新
-├── ValueObjects/PreQuestion.php                # lessons.pre_question のキャスト先
+├── ValueObjects/PreQuestion.php / Choice.php   # lessons.pre_question のキャスト先
+├── Casts/PreQuestionCast.php                  # PreQuestion ⇔ jsonb
+├── Rules/LaravelDocsUrl.php                   # 出典URLの検証規則
 ├── Enums/
 │   ├── QuestionType.php                        # recall / choice / code_review
 │   ├── ReviewResult.php                        # remembered / vague / forgot / correct / incorrect
@@ -210,7 +216,7 @@ URL短縮サービスの `ci.yml` を元に、MySQLをPostgreSQL（`postgres:18`
 | 整形チェック | `composer lint`（`pint --test`） |
 | 静的解析 | `composer analyse`（`phpstan analyse`） |
 | テスト | `composer test`（`pest`） |
-| 教材の検証（CMD-01 の実装時に追加） | `php artisan migrate --force && php artisan lessons:import --dry-run`（`DB_DATABASE=testing`） |
+| 教材の検証 | `php artisan migrate:fresh --force && php artisan lessons:import --dry-run`（`DB_DATABASE=testing`） |
 
 - 権限は `contents: read` のみ。actions はコミットハッシュで固定する
 - Larastanの対象は `app`、`config`、`database`、`routes`、`bootstrap/app.php`

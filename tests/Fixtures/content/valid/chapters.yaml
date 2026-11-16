@@ -1,0 +1,5 @@
+chapters:
+  - number: 1
+    title: Laravelの全体像
+  - number: 2
+    title: ディレクトリ構成と設定

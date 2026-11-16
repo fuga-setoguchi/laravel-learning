@@ -17,6 +17,13 @@ use InvalidArgumentException;
 final class PreQuestionCast implements CastsAttributes
 {
     /**
+     * 読み出した PreQuestion をモデルにキャッシュしない。キャッシュすると、保存時に値を読んだだけで
+     * JSONに書き戻され、jsonb が正規化した文字列と一致しないため「変更あり」と判定されてしまう。
+     * PreQuestion は変更できない値オブジェクトなので、キャッシュする必要もない。
+     */
+    public bool $withoutObjectCaching = true;
+
+    /**
      * @param  array<string, mixed>  $attributes
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): PreQuestion

@@ -66,4 +66,10 @@ jobs:
       - name: Test (Pest)
         run: composer test
 
-      # 教材の検証（lessons:import --dry-run）は CMD-01 の実装時に追加する（docs/02_architecture.md 5章）
+      # content/ の教材がすべて検証を通ること（docs/02_architecture.md 5章）。DBはテスト用を使う
+      - name: Validate content
+        env:
+          DB_DATABASE: testing
+        run: |
+          php artisan migrate:fresh --force
+          php artisan lessons:import --dry-run

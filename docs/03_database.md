@@ -175,5 +175,6 @@ chapters 1─* lessons 1─* lesson_sources
 - 全モデルで `Model::shouldBeStrict()`（遅延ロード・存在しない属性・黙って捨てられる代入を例外にする）を開発・テスト時に有効にする
 - マスアサインメントは `$fillable` を明示する（`$guarded = []` は使わない）
 - 列挙型（`app/Enums`）は、値の一覧を返す `values(): list<string>` を持つ（マイグレーションの CHECK 制約と、検証規則で使う）
+- `PreQuestion` のキャストはオブジェクトのキャッシュを無効にする（`withoutObjectCaching`）。jsonb はキーの順や空白を正規化して保存するため、キャッシュした値が保存時に書き戻されると、内容が同じでも「変更あり」と判定される。取り込みでは、事前の問いを値で比べて変わったときだけ設定する
 - `PreQuestion`（`app/ValueObjects`）は `Castable` を実装し、`prompt`・`choices`（`Choice` の一覧。`key` と `body`）・`answer`・`explanation` を持つ readonly クラスとする
 - ファクトリは全モデルに用意する。学習記録のファクトリには、テストで使う状態（`ReviewState::due()` / `notDue()`、`ReviewLog::scheduled()` / `practice()` / `failedOn()` など）を用意する
