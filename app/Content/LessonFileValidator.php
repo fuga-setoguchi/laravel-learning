@@ -13,6 +13,7 @@ use App\Content\Data\ParsedQuestion;
 use App\Content\Data\ParsedSource;
 use App\Enums\QuestionType;
 use App\Rules\LaravelDocsUrl;
+use App\Support\TypedArray;
 use App\ValueObjects\Choice;
 use App\ValueObjects\PreQuestion;
 use Illuminate\Support\Facades\Validator;

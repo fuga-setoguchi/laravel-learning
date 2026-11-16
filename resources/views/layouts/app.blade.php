@@ -17,12 +17,21 @@
             </ul>
             <ul>
                 <li><a href="{{ route('home') }}">ホーム</a></li>
+                <li><a href="{{ route('review.show') }}">復習</a></li>
             </ul>
         </nav>
     </header>
     <main>
         @if (session('status'))
             <p role="status"><mark>{{ session('status') }}</mark></p>
+        @endif
+
+        @if ($errors->any())
+            <ul role="alert">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         @endif
 
         @yield('content')

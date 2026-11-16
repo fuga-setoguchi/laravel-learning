@@ -22,18 +22,18 @@ class LessonFactory extends Factory
         return [
             'chapter_id' => Chapter::factory(),
             'position' => ++self::$sequence,
-            'title' => fake()->realText(30),
-            'body' => "## 概念\n\n".fake()->realText(200),
+            'title' => fake()->sentence(),
+            'body' => "## 概念\n\n".fake()->paragraph(),
             'laravel_version' => '13.x',
             'pre_question' => new PreQuestion(
-                prompt: fake()->realText(40),
+                prompt: fake()->sentence(),
                 choices: [
-                    new Choice('a', fake()->realText(20)),
-                    new Choice('b', fake()->realText(20)),
-                    new Choice('c', fake()->realText(20)),
+                    new Choice('a', fake()->sentence()),
+                    new Choice('b', fake()->sentence()),
+                    new Choice('c', fake()->sentence()),
                 ],
                 answer: 'b',
-                explanation: fake()->realText(60),
+                explanation: fake()->paragraph(),
             ),
         ];
     }

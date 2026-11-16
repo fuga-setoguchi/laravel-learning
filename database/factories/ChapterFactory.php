@@ -19,7 +19,7 @@ class ChapterFactory extends Factory
     {
         return [
             'id' => ++self::$sequence,
-            'title' => fake()->realText(20),
+            'title' => fake()->sentence(),
         ];
     }
 

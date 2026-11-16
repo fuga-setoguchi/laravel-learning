@@ -25,8 +25,8 @@ class QuestionFactory extends Factory
             'lesson_id' => Lesson::factory(),
             'type' => QuestionType::Recall,
             'position' => ++self::$sequence,
-            'prompt' => fake()->realText(40),
-            'answer' => fake()->realText(60),
+            'prompt' => fake()->sentence(),
+            'answer' => fake()->paragraph(),
         ];
     }
 
@@ -58,7 +58,7 @@ class QuestionFactory extends Factory
         return $this->state(fn (): array => [
             'type' => QuestionType::Choice,
             'answer' => null,
-            'explanation' => fake()->realText(60),
+            'explanation' => fake()->paragraph(),
         ]);
     }
 
@@ -69,7 +69,7 @@ class QuestionFactory extends Factory
             'code' => "public function store(Request \$request)\n{\n    \$service = new PaymentService();\n}",
             'code_language' => 'php',
             'answer' => null,
-            'explanation' => fake()->realText(60),
+            'explanation' => fake()->paragraph(),
         ]);
     }
 
