@@ -159,7 +159,7 @@ questions:
 | `type` | ○ | `choice` または `code_review` |
 | `prompt` | ○ | 1文字以上 |
 | `code` | `code_review` のみ必須 | `choice` では書かない |
-| `code_language` | × | 既定 `php`。`php` / `blade` / `bash` / `json` / `yaml` / `sql` のいずれか。`blade` は highlight.js の `php-template` として表示する（実装時に同梱ファイルに含まれるか確認する） |
+| `code_language` | × | 既定 `php`。`php` / `blade` / `bash` / `json` / `yaml` / `sql` のいずれか。`blade` は highlight.js の `php-template` として表示する（同梱の 11.11.1 に含まれることを確認済み） |
 | `choices` | ○ | 2〜6件。規則は事前の問いと同じ |
 | `answer` | ○ | `choices` のいずれかの `key`（正解は1つ） |
 | `explanation` | ○ | 1文字以上 |

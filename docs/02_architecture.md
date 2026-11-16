@@ -37,10 +37,10 @@
 | DB | PostgreSQL（Docker、`postgres:18`） | 18.x | 学習用・開発用・テスト用でデータベースを分ける（4章） |
 | コンテナ | Docker Compose | | DBのみ（`compose.yaml`） |
 | 画面 | Blade + Bladeコンポーネント | Laravel同梱 | |
-| CSS | Pico CSS（classless版、`public/vendor/` に同梱） | 2.x | Node.jsなしで最低限の見た目を整える |
+| CSS | Pico CSS（classless版、`public/vendor/pico/` に同梱） | 2.1.1 | Node.jsなしで最低限の見た目を整える |
 | Markdown | league/commonmark（`Str::markdown`） | Laravel同梱 | 本文・問題文の表示 |
 | front matter | league/commonmark の FrontMatterExtension + symfony/yaml（`composer require symfony/yaml` が必要） | | 教材ファイルの解析 |
-| ハイライト | highlight.js（`public/vendor/` に同梱） | 11.x | 本文中のコード表示 |
+| ハイライト | highlight.js（common ビルドと github / github-dark の配色。`public/vendor/highlight/` に同梱） | 11.11.1 | 本文中のコード表示 |
 | 静的解析 | Larastan | 3.x（level max） | `parseModelCastsMethod: true`（モデルの `casts()` の中身を読み、Enum・日付のキャスト後の型で解析する。既定では戻り値の型 `array` しか見ず、キャストが無視される） |
 | 整形 | Laravel Pint | `laravel` プリセット + `declare_strict_types` | |
 | テスト | Pest | 5.x | |
@@ -93,7 +93,7 @@ app/
 └── Support/Markdown.php                        # Str::markdown の安全な設定をまとめる
 resources/views/
 ├── layouts/app.blade.php
-├── components/                                 # markdown, source-list, choice-form など
+├── components/                                 # lesson-header（レッスンの見出しと段階）、markdown、lesson-sources（対象バージョンと出典）
 ├── home.blade.php / curriculum.blade.php
 ├── lessons/{pre-question,read,recall,completed}.blade.php
 └── review/{question,result,done}.blade.php
