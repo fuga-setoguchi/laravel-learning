@@ -216,7 +216,7 @@ URL短縮サービスの `ci.yml` を元に、MySQLをPostgreSQL（`postgres:18`
 | 整形チェック | `composer lint`（`pint --test`） |
 | 静的解析 | `composer analyse`（`phpstan analyse`） |
 | テスト | `composer test`（`pest`） |
-| 教材の検証 | `php artisan migrate:fresh --force && php artisan lessons:import --dry-run`（`DB_DATABASE=testing`） |
+| 教材の検証 | `php artisan migrate --force && php artisan lessons:import --dry-run`（`DB_DATABASE=testing`。CIの `.env` は保護が有効なため `migrate:fresh` は使えない） |
 
 - 権限は `contents: read` のみ。actions はコミットハッシュで固定する
 - Larastanの対象は `app`、`config`、`database`、`routes`、`bootstrap/app.php`
