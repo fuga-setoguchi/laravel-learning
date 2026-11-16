@@ -50,6 +50,10 @@
 | CMD-01-T35 | エラーのある教材で `--dry-run` | 終了コード1、エラーの一覧 |
 | CMD-01-T36 | `code_language` が許可されていない値（`ruby`） | `questions.0.code_language` |
 | CMD-01-T37 | レッスンごとに `laravel_version` が異なる（13.x と 12.x） | 警告が表示され、取り込みは成功する |
+| CMD-01-T38 | `references` に他のバージョンのドキュメント（11.x）・公式ブログ | 取り込める。補足資料として `kind = reference` で保存され、出典とは別に順番が振られる |
+| CMD-01-T39 | `references` がない / 空の配列 | 取り込める（任意項目） |
+| CMD-01-T40 | `references` のURLが公式以外（`http://`、別ドメイン、`laravel.com.evil.example`、`laravel.com/docs/11.x/` のようにページ名なし） | `references.0.url` のエラー |
+| CMD-01-T41 | 補足資料だけを修正して再取り込み | レッスンが「更新」に数えられ、出典は変わらない |
 
 ## 3. LessonFileParser（単体）
 

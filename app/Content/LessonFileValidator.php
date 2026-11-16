@@ -13,6 +13,7 @@ use App\Content\Data\ParsedQuestion;
 use App\Content\Data\ParsedSource;
 use App\Enums\QuestionType;
 use App\Rules\LaravelDocsUrl;
+use App\Rules\LaravelOfficialUrl;
 use App\Support\TypedArray;
 use App\ValueObjects\Choice;
 use App\ValueObjects\PreQuestion;
@@ -157,6 +158,11 @@ final class LessonFileValidator
             'sources.*.title' => ['required', 'string', 'max:100'],
             'sources.*.url' => ['required', 'string', new LaravelDocsUrl($validVersion)],
 
+            'references' => ['sometimes', 'list'],
+            'references.*' => ['array'],
+            'references.*.title' => ['required', 'string', 'max:100'],
+            'references.*.url' => ['required', 'string', new LaravelOfficialUrl],
+
             'pre_question' => ['required', 'array'],
             'pre_question.prompt' => ['required', 'string'],
             ...$this->choiceRules('pre_question', $data['pre_question'] ?? null),
@@ -289,11 +295,21 @@ final class LessonFileValidator
                 answer: TypedArray::string($preQuestion, 'answer'),
                 explanation: TypedArray::string($preQuestion, 'explanation'),
             ),
-            sources: array_map(
-                static fn (array $source): ParsedSource => new ParsedSource(TypedArray::string($source, 'title'), TypedArray::string($source, 'url')),
-                TypedArray::listOfArrays($data, 'sources'),
-            ),
+            sources: $this->toSources($data, 'sources'),
+            references: $this->toSources($data, 'references'),
             questions: $questions,
+        );
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $data
+     * @return list<ParsedSource>
+     */
+    private function toSources(array $data, string $key): array
+    {
+        return array_map(
+            static fn (array $source): ParsedSource => new ParsedSource(TypedArray::string($source, 'title'), TypedArray::string($source, 'url')),
+            TypedArray::listOfArrays($data, $key),
         );
     }
 

@@ -199,3 +199,16 @@ it('SCR-03-T14 同じ日に2回表示すると、事前の問いの選択肢は�
 
     expect($order())->toBe($morning);
 });
+
+it('SCR-03-T15 補足資料は、出典の下に「参考（経緯・背景）」として表示される', function (): void {
+    $this->get(route('lessons.read', [$this->lesson, 'answer' => 'b']))
+        ->assertOk()
+        ->assertDontSee('参考（経緯・背景）');
+
+    LessonSource::factory()->reference()->for($this->lesson)->create();
+
+    $this->get(route('lessons.read', [$this->lesson, 'answer' => 'b']))
+        ->assertOk()
+        ->assertSeeInOrder(['Service Container', '参考（経緯・背景）', 'Laravel 11 Release Notes'])
+        ->assertSee('<a href="https://laravel.com/docs/11.x/releases" target="_blank" rel="noopener noreferrer">Laravel 11 Release Notes</a>', false);
+});

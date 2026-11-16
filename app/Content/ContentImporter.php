@@ -9,6 +9,7 @@ use App\Content\Data\ParsedChapter;
 use App\Content\Data\ParsedLesson;
 use App\Content\Data\ParsedQuestion;
 use App\Content\Data\ParsedSource;
+use App\Enums\SourceKind;
 use App\Models\Chapter;
 use App\Models\Lesson;
 use App\Models\LessonSource;
@@ -77,7 +78,10 @@ final class ContentImporter
                 $attributes['pre_question'] = $parsed->preQuestion;
             }
             $status = $this->save($lesson, $attributes);
-            $sourcesChanged = $this->syncSources($lesson, $parsed->sources);
+            // 出典と補足資料は、どちらか一方だけが変わってもレッスンの「更新」に数える
+            $sourcesChanged = $this->syncSources($lesson, SourceKind::Source, $parsed->sources);
+            $referencesChanged = $this->syncSources($lesson, SourceKind::Reference, $parsed->references);
+            $sourcesChanged = $sourcesChanged || $referencesChanged;
             $result->lessons->count($status === ImportStatus::Unchanged && $sourcesChanged ? ImportStatus::Updated : $status);
 
             foreach ($parsed->questions as $question) {
@@ -137,14 +141,15 @@ final class ContentImporter
     }
 
     /**
-     * 出典をレッスン単位で作り直す。内容が同じなら作り直さない。
+     * 出典・補足資料を、レッスン・種別の単位で作り直す。内容が同じなら作り直さない。
      *
      * @param  list<ParsedSource>  $sources
      * @return bool 変更があれば true
      */
-    private function syncSources(Lesson $lesson, array $sources): bool
+    private function syncSources(Lesson $lesson, SourceKind $kind, array $sources): bool
     {
-        $current = $lesson->sources()->get()
+        $relation = $kind === SourceKind::Source ? $lesson->sources() : $lesson->references();
+        $current = $relation->get()
             ->map(static fn (LessonSource $source): array => [$source->title, $source->url])
             ->all();
         $next = array_map(static fn (ParsedSource $source): array => [$source->title, $source->url], $sources);
@@ -153,9 +158,15 @@ final class ContentImporter
             return false;
         }
 
-        $lesson->sources()->delete();
+        $relation->delete();
         foreach ($sources as $index => $source) {
-            $lesson->sources()->create(['position' => $index + 1, 'title' => $source->title, 'url' => $source->url]);
+            LessonSource::query()->create([
+                'lesson_id' => $lesson->id,
+                'kind' => $kind,
+                'position' => $index + 1,
+                'title' => $source->title,
+                'url' => $source->url,
+            ]);
         }
 
         return true;

@@ -105,6 +105,13 @@ it('DB-T06 復習状態がある問題は削除できない（学習記録を巻
     expect(ReviewState::count())->toBe(1);
 });
 
+it('DB-T16 lesson_sources の種別は source / reference だけを保存できる', function (): void {
+    $source = LessonSource::factory()->create();
+
+    expect(inSavepoint(fn () => DB::table('lesson_sources')->where('id', $source->id)->update(['kind' => 'other'])))
+        ->toThrow(QueryException::class, 'check');
+});
+
 it('DB-T07 レッスン・問題を削除すると、出典・選択肢も削除される', function (): void {
     $source = LessonSource::factory()->create();
     $question = Question::factory()->choice()->create();
