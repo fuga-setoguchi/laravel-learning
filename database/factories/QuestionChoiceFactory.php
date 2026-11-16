@@ -18,7 +18,7 @@ class QuestionChoiceFactory extends Factory
         return [
             'question_id' => Question::factory()->choice(),
             'key' => 'd',
-            'body' => fake()->realText(30),
+            'body' => fake()->sentence(),
             'is_correct' => false,
         ];
     }

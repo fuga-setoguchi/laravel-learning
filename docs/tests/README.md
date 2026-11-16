@@ -17,7 +17,7 @@
 
 - DBはDockerのPostgreSQLのテスト用データベース `testing`（`phpunit.xml` で `force` 指定）を使い、`RefreshDatabase` で初期化する（最初に1回 `migrate:fresh`、各テストはトランザクションで巻き戻す）。テストの前に `docker compose up -d` が必要
 - 時刻は `$this->travelTo(CarbonImmutable::parse('2026-12-01 09:00', 'Asia/Tokyo'))` などで固定する。日付の境界（0時）をまたぐテストを含める
-- テストデータはモデルファクトリで作る。`ReviewState` / `ReviewLog` のファクトリには「期限が来た」「今日不正解」などの状態（`state`）を用意する
+- テストデータはモデルファクトリで作る。文章は `fake()->sentence()` などの軽いものを使う（ja_JP の `realText()` は大きな原文を読み込み、テストのメモリを使い切るため）。復習のテストデータは `tests/Support/ReviewFixture.php` でまとめて作る。`ReviewState` / `ReviewLog` のファクトリには「期限が来た」「今日不正解」などの状態（`state`）を用意する
 - 教材取り込みのテストは `tests/Fixtures/content/` の教材フォルダを `--path` で指定する。正常な教材一式（`valid/`）と、エラーごとの最小のファイルを用意する。エラーのファイルは、テスト内で正常な教材を一時フォルダにコピーして一部を書き換えて作る（`tests/Support/ContentFixture.php`。一時フォルダはテストの終了時に消す）
 - 画面のテストは、ステータス・リダイレクト先・表示される文言・DBの状態で検証する。HTMLの構造の細部（クラス名など）は検証しない
 - DBの制約違反を確かめるテストでは、失敗するはずの処理を `DB::transaction()`（セーブポイント）の中で実行する。PostgreSQL はトランザクション内でエラーが起きると以降のクエリをすべて拒否するため、`RefreshDatabase` のトランザクションが使えなくなる

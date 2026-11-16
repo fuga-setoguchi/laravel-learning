@@ -62,7 +62,6 @@ app/
 │   ├── LessonFileParser.php                    # Markdown → front matter の配列 + 本文
 │   ├── LessonFileValidator.php                 # 配列の検証（Laravel の Validator を使う）
 │   ├── LessonFileParseException.php            # front matter を解析できない
-│   ├── TypedArray.php                          # 検証済みの配列から型を確かめて値を取り出す
 │   ├── ContentImporter.php                     # 検証済みの教材をトランザクションでDBへ反映
 │   ├── ImportResult.php / ImportCounts.php / ImportStatus.php  # 追加・更新・変更なし・引退・復活の件数と警告
 │   ├── ContentValidationException.php          # 検証エラーの一覧（ファイルごと）を持つ例外
@@ -72,10 +71,12 @@ app/
 │   ├── ScheduledState.php / Candidate.php      # 計算結果・出題候補（readonly）
 │   ├── NextQuestionPicker.php                  # 候補から次の1問を選ぶ（純粋なクラス、DB不使用）
 │   ├── ReviewQueue.php                         # DBから候補を集めて NextQuestionPicker に渡す
+│   ├── ReviewItem.php / RemainingCount.php     # 次に出す問題（出題の種類つき）、残り件数
 │   └── ChoiceShuffler.php                      # 選択肢の決定的シャッフル
 ├── Actions/
 │   ├── CompleteLesson.php / CompleteLessonResult.php      # レッスン完了 + 復習への登録
-│   └── RecordReviewAnswer.php / Recorded.php / Rejected.php # 回答の検証・記録・段階の更新
+│   ├── RecordReviewAnswer.php / Recorded.php / Rejected.php # 回答の検証・記録・段階の更新
+│   └── SubmittedAnswer.php / RejectionReason.php           # 送信された回答、記録しなかった理由
 ├── ValueObjects/PreQuestion.php / Choice.php   # lessons.pre_question のキャスト先
 ├── Casts/PreQuestionCast.php                  # PreQuestion ⇔ jsonb
 ├── Rules/LaravelDocsUrl.php                   # 出典URLの検証規則
@@ -90,10 +91,12 @@ app/
 │   └── Requests/SubmitReviewAnswerRequest.php
 ├── Models/                                     # Chapter, Lesson, LessonSource, Question,
 │                                               # QuestionChoice, LessonProgress, ReviewState, ReviewLog
-└── Support/Markdown.php                        # Str::markdown の安全な設定をまとめる
+└── Support/
+    ├── Markdown.php                            # Str::markdown の安全な設定をまとめる
+    └── TypedArray.php                          # 配列（検証済みの教材、DBの行）から型を確かめて値を取り出す
 resources/views/
 ├── layouts/app.blade.php
-├── components/                                 # lesson-header（レッスンの見出しと段階）、markdown、lesson-sources（対象バージョンと出典）
+├── components/                                 # lesson-header（レッスンの見出しと段階）、markdown、lesson-sources（対象バージョンと出典）、code-block（コード）、review-question-source（出題中の問題のレッスン）
 ├── home.blade.php / curriculum.blade.php
 ├── lessons/{pre-question,read,recall,completed}.blade.php
 └── review/{question,result,done}.blade.php
