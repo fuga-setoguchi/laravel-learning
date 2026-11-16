@@ -20,17 +20,19 @@
 - テストデータはモデルファクトリで作る。`ReviewState` / `ReviewLog` のファクトリには「期限が来た」「今日不正解」などの状態（`state`）を用意する
 - 教材取り込みのテストは `tests/Fixtures/content/` の教材フォルダを `--path` で指定する。正常な教材一式（`valid/`）と、エラーごとの最小のファイルを用意する。エラーのファイルは、テスト内で正常な教材をコピーして一部を書き換えて作ってもよい
 - 画面のテストは、ステータス・リダイレクト先・表示される文言・DBの状態で検証する。HTMLの構造の細部（クラス名など）は検証しない
+- DBの制約違反を確かめるテストでは、失敗するはずの処理を `DB::transaction()`（セーブポイント）の中で実行する。PostgreSQL はトランザクション内でエラーが起きると以降のクエリをすべて拒否するため、`RefreshDatabase` のトランザクションが使えなくなる
 - N+1がないことは、`DB::enableQueryLog()` でクエリ数がデータ件数に比例しないことを確認する（件数を変えた2回で同じクエリ数）
 - `Model::shouldBeStrict()` をテストで有効にし、遅延ロードを例外にする
 
 ## 3. テストIDの付け方
 
-`{設計書ID}-T{連番2桁}`（例: CMD-01-T01）。復習ロジックは `LOGIC-T{連番2桁}`。テストコードの `it()` の説明文の先頭にIDを書き、設計書と対応付ける。
+`{設計書ID}-T{連番2桁}`（例: CMD-01-T01）。復習ロジックは `LOGIC-T{連番2桁}`、DBは `DB-T{連番2桁}`。テストコードの `it()` の説明文の先頭にIDを書き、設計書と対応付ける。
 
 ## 4. 一覧
 
 | 設計書 | 対象 |
 | --- | --- |
+| [DB_test.md](DB_test.md) | DB（マイグレーション・制約・モデル） |
 | [LOGIC_test.md](LOGIC_test.md) | 復習ロジック（ReviewScheduler、NextQuestionPicker、ChoiceShuffler、ReviewQueue、CompleteLesson、RecordReviewAnswer） |
 | [CMD-01_test.md](CMD-01_test.md) | 教材の取り込み |
 | [SCR-01_test.md](SCR-01_test.md) | ホーム |
