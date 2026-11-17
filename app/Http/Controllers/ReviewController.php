@@ -6,7 +6,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\RecordReviewAnswer;
 use App\Actions\Rejected;
-use App\Enums\Grade;
 use App\Enums\QuestionType;
 use App\Enums\ReviewMode;
 use App\Http\Requests\SubmitReviewAnswerRequest;
@@ -34,7 +33,7 @@ class ReviewController extends Controller
 
         if ($item === null) {
             return view('review.done', [
-                'grades' => $this->todayGrades($today),
+                'summary' => $queue->summary($today),
                 'nextLesson' => Lesson::nextToStudy()?->load('chapter'),
             ]);
         }
@@ -82,29 +81,5 @@ class ReviewController extends Controller
             'correct' => $question->choices->first(static fn (QuestionChoice $choice): bool => $choice->is_correct),
             'nextReviewOn' => $nextReviewOn,
         ]);
-    }
-
-    /**
-     * 今日の期限による出題の回答を、評価ごとに数える
-     *
-     * @return array{pass: int, hold: int, fail: int}
-     */
-    private function todayGrades(CarbonImmutable $today): array
-    {
-        $grades = ['pass' => 0, 'hold' => 0, 'fail' => 0];
-        $logs = ReviewLog::query()
-            ->where('answered_on', $today->toDateString())
-            ->where('mode', ReviewMode::Scheduled)
-            ->get(['result']);
-
-        foreach ($logs as $log) {
-            match ($log->result->grade()) {
-                Grade::Pass => $grades['pass']++,
-                Grade::Hold => $grades['hold']++,
-                Grade::Fail => $grades['fail']++,
-            };
-        }
-
-        return $grades;
     }
 }

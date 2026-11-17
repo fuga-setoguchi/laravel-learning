@@ -1,17 +1,16 @@
 @extends('layouts.app')
 
-@section('title', '今日の復習は完了')
+@section('title', '今日の復習')
 
 @section('content')
-    <h1>今日の復習は完了しました</h1>
+    <h1>今日の復習</h1>
 
-    @php($total = $grades['pass'] + $grades['hold'] + $grades['fail'])
-    @if ($total === 0)
-        <p>今日復習する問題はありませんでした。</p>
-    @else
+    <x-today-review-status :summary="$summary" />
+
+    @if ($summary->status === App\Review\TodayReviewStatus::Completed)
         <p>
-            今日の回答: {{ $total }} 問
-            （正解・思い出せた {{ $grades['pass'] }} / あいまい {{ $grades['hold'] }} / 不正解・思い出せなかった {{ $grades['fail'] }}）
+            今日の回答: {{ $summary->answeredCount() }} 問
+            （正解・思い出せた {{ $summary->grades['pass'] }} / あいまい {{ $summary->grades['hold'] }} / 不正解・思い出せなかった {{ $summary->grades['fail'] }}）
         </p>
     @endif
 

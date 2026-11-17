@@ -21,7 +21,7 @@ class HomeController extends Controller
         $activeLessons = Lesson::query()->active()->count();
 
         return view('home', [
-            'remaining' => $queue->remaining(CarbonImmutable::today()),
+            'summary' => $queue->summary(CarbonImmutable::today()),
             'nextLesson' => Lesson::nextToStudy()?->load('chapter'),
             'activeLessons' => $activeLessons,
             'completedLessons' => Lesson::query()->active()->has('progress')->count(),

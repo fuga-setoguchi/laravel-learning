@@ -47,6 +47,39 @@ final readonly class ReviewQueue
         return new RemainingCount(count($due) + count($practice), count($practice));
     }
 
+    /**
+     * 今日の復習の状態・残り件数・今日の回答の集計・次回の復習日（docs/05_review-logic.md 4.4）
+     */
+    public function summary(CarbonImmutable $today): TodayReview
+    {
+        $remaining = $this->remaining($today);
+        $grades = $this->todayGrades($today);
+
+        $registered = DB::table('review_states')
+            ->join('questions', 'questions.id', '=', 'review_states.question_id')
+            ->join('lessons', 'lessons.id', '=', 'questions.lesson_id')
+            ->whereNull('questions.retired_at')
+            ->whereNull('lessons.retired_at');
+
+        $nextReviewOn = (clone $registered)
+            ->where('review_states.next_review_on', '>', $today->toDateString())
+            ->min('review_states.next_review_on');
+
+        $status = match (true) {
+            $remaining->total > 0 => TodayReviewStatus::InProgress,
+            ! $registered->exists() => TodayReviewStatus::NotStarted,
+            array_sum($grades) > 0 => TodayReviewStatus::Completed,
+            default => TodayReviewStatus::NothingDue,
+        };
+
+        return new TodayReview(
+            $status,
+            $remaining,
+            $grades,
+            is_string($nextReviewOn) ? CarbonImmutable::parse($nextReviewOn)->startOfDay() : null,
+        );
+    }
+
     /** 今、再出題（B）の対象か */
     public function isPracticeTarget(string $questionId, CarbonImmutable $today): bool
     {
@@ -67,6 +100,30 @@ final readonly class ReviewQueue
         $id = ReviewLog::query()->where('question_id', $questionId)->max('id');
 
         return is_numeric($id) ? (int) $id : 0;
+    }
+
+    /**
+     * 今日の期限の出題の回答を、評価ごとに数える（練習は含めない）
+     *
+     * @return array{pass: int, hold: int, fail: int}
+     */
+    private function todayGrades(CarbonImmutable $today): array
+    {
+        $grades = ['pass' => 0, 'hold' => 0, 'fail' => 0];
+        $logs = ReviewLog::query()
+            ->where('answered_on', $today->toDateString())
+            ->where('mode', ReviewMode::Scheduled)
+            ->get(['result']);
+
+        foreach ($logs as $log) {
+            match ($log->result->grade()) {
+                Grade::Pass => $grades['pass']++,
+                Grade::Hold => $grades['hold']++,
+                Grade::Fail => $grades['fail']++,
+            };
+        }
+
+        return $grades;
     }
 
     /**

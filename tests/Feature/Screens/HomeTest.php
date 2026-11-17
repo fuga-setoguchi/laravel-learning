@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\ReviewResult;
 use App\Models\Chapter;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
@@ -44,13 +45,37 @@ it('SCR-01-T01 今日の復習の残り件数（うち再出題）と、復習�
         ->assertSee('復習を始める');
 });
 
-it('SCR-01-T02 期限が来た問題がなければ、復習は完了と表示され、開始のリンクはない', function (): void {
-    ReviewFixture::due('2026-12-02');
+it('SCR-01-T02 今日の期限の問題にすべて回答済みなら、完了と次回の復習日が表示され、開始のリンクはない', function (): void {
+    $answered = ReviewFixture::due('2026-12-04');
+    ReviewFixture::log($answered, ReviewResult::Remembered, '2026-12-01 08:00');
+    ReviewFixture::due('2026-12-08');
 
     $this->get(route('home'))
         ->assertOk()
         ->assertSee('今日の復習は完了しました。')
+        ->assertSee('次回の復習: 2026-12-04')
         ->assertDontSee('復習を始める');
+});
+
+it('SCR-01-T10 復習に登録済みの問題がなければ、まだ復習する問題がないと表示する', function (): void {
+    curriculumLesson(1, 1);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('まだ復習する問題はありません。レッスンを完了すると、翌日から復習が始まります。')
+        ->assertDontSee('今日の復習は完了しました')
+        ->assertDontSee('次回の復習:');
+});
+
+it('SCR-01-T11 登録はあるが今日が期限の問題がなく、今日は回答していなければ、予定なしと次回の復習日を表示する', function (): void {
+    ReviewFixture::due('2026-12-02');
+    ReviewFixture::due('2026-12-05');
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('今日復習する問題はありません。')
+        ->assertSee('次回の復習: 2026-12-02')
+        ->assertDontSee('今日の復習は完了しました');
 });
 
 it('SCR-01-T03 次のレッスンは、未完了のうち章・順番が最も前のもの', function (): void {
