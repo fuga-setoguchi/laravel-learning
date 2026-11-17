@@ -5,6 +5,9 @@ Laravelの概念・設計判断・ベストプラクティスを、想起練習�
 - 計画・設計: [docs/](docs/)（[プロジェクト計画書](docs/00_project-plan.md)から読む）
 - 教材: `content/`（[教材フォーマット仕様書](docs/04_content-format.md)）
 
+> [!WARNING]
+> `content/` の教材は、Claude Code（AI）が生成した個人の学習用のものです。誤りや古い情報を含む可能性があり、正確さは保証しません。正しい情報は、各レッスンの出典に書いた [Laravel 公式ドキュメント](https://laravel.com/docs) で確かめてください。
+
 ## 必要なもの
 
 - PHP 8.4 以上（pdo_pgsql）
@@ -76,3 +79,7 @@ composer lint      # Pint（整形チェック）。composer format で整形
 composer analyse   # Larastan（level max）
 composer test      # Pest
 ```
+
+## ライセンス
+
+[MIT License](LICENSE)
