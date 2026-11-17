@@ -10,9 +10,9 @@ Claude Codeに教材を書かせるときに、毎回このファイルを参照
 
 ```
 docs/06_content-generation-guide.md と docs/04_content-format.md に従い、
-第{N}章「{テーマ}」のレッスンを {M} 本作成してください。
-章の主な内容: {計画書 5章の「主な内容」}
-既存のレッスン: content/ch{NN}/ を確認し、重複しないようにしてください。
+docs/07_curriculum.md の第{N}章のレッスンを作成してください。
+レッスンの構成・学習の目標・扱わないことは、カリキュラム設計書のとおりにしてください。
+既存の章の教材（content/）を確認し、重複しないようにしてください。
 作成後、php artisan lessons:import --dry-run を実行し、エラーがなくなるまで修正してください。
 ```
 
