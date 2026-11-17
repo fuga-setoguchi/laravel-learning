@@ -11,18 +11,20 @@ chapters:
   - number: 5
     title: コントローラーの責務
   - number: 6
-    title: Eloquentとデータベース設計
+    title: Eloquentのモデル
   - number: 7
-    title: バリデーションと認可
+    title: リレーションとトランザクション
   - number: 8
-    title: 非同期処理
+    title: バリデーションと認証・認可
   - number: 9
-    title: テスト戦略
+    title: 非同期処理
   - number: 10
-    title: セキュリティ
+    title: テスト戦略
   - number: 11
-    title: 例外処理とログ
+    title: セキュリティ
   - number: 12
-    title: パフォーマンス
+    title: 例外処理とログ
   - number: 13
+    title: パフォーマンス
+  - number: 14
     title: AIとの協働（総まとめ）
