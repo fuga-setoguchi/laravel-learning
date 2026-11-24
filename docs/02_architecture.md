@@ -174,8 +174,8 @@ content/
 
 | 用途 | 起動方法 | 環境ファイル | データベース |
 | --- | --- | --- | --- |
-| 学習（毎日使う） | `docker compose up -d` → `php artisan serve` | `.env`（`APP_ENV=local`） | `learning` |
-| 開発中の動作確認 | `APP_ENV=dev php artisan serve --port=8001`。Artisanコマンドは `--env=dev` を付ける | `.env.dev` | `learning_dev` |
+| 学習（毎日使う） | `make start`（`docker compose up -d --wait` → `php artisan serve`） | `.env`（`APP_ENV=local`） | `learning` |
+| 開発中の動作確認 | `make serve-dev`（`APP_ENV=dev php artisan serve --port=8001`）。Artisanコマンドは `--env=dev` を付ける | `.env.dev` | `learning_dev` |
 | 自動テスト | `composer test` | `phpunit.xml`（`DB_CONNECTION=pgsql`、`DB_DATABASE=testing` を `force` で固定） | `testing` |
 
 ### 4.1 Docker（compose.yaml）
@@ -204,7 +204,7 @@ content/
 
 - 手順: `docker compose exec -T db pg_dump -U app -Fc learning > <バックアップ先>/learning-YYYYMMDD.dump`（カスタム形式。DBを止めずに一貫した内容で書き出せる）
 - 復元: `docker compose exec -T db pg_restore -U app -d learning --clean --if-exists < <バックアップファイル>`
-- 頻度: 週1回と、`migrate` の実行前・教材の取り込み前
+- 頻度: 週1回と、`migrate` の実行前・教材の取り込み前。`make backup` で行い、`make import` は取り込みの前に自動で `make backup` を実行する
 - バックアップ先: リポジトリの外（iCloud Drive など）
 - 手順はREADMEに記載する
 
