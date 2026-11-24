@@ -20,7 +20,7 @@ Node.jsは不要。
 
 ```bash
 composer setup   # 依存関係、.env、DBのボリューム作成、PostgreSQLの起動、マイグレーション
-php artisan serve
+make serve
 ```
 
 ブラウザで http://127.0.0.1:8000 を開く。
@@ -28,9 +28,25 @@ php artisan serve
 ## 毎日の起動
 
 ```bash
-docker compose up -d
-php artisan serve
+make start   # DBを起動して、学習用のサーバーを起動する
 ```
+
+## よく使うコマンド
+
+`make`（`make help`）で一覧を表示する。
+
+| コマンド | すること |
+| --- | --- |
+| `make start` | DBを起動して、学習用のサーバーを起動する（`make up` → `make serve`） |
+| `make up` | DB（PostgreSQL）を起動し、使えるようになるまで待つ |
+| `make serve` | 学習用のサーバーを起動する |
+| `make serve-dev` | 開発用DBで動作確認のサーバーを起動する |
+| `make backup` | 学習用DBをバックアップする |
+| `make import` | バックアップしてから、教材を学習用DBに取り込む |
+| `make import-check` | 教材をテスト用DBで検証する（学習用DBは変更しない） |
+| `make check` | 整形チェック・静的解析・テストをすべて実行する |
+
+学習記録を消すコマンドは、Makefile に入れない。
 
 ## データベース
 
@@ -38,9 +54,9 @@ php artisan serve
 
 | 用途 | 起動 | 環境ファイル | データベース |
 | --- | --- | --- | --- |
-| 学習 | `php artisan serve` | `.env` | `learning` |
-| 開発中の動作確認 | `APP_ENV=dev php artisan serve --port=8001` | `.env.dev` | `learning_dev` |
-| 自動テスト | `composer test` | `phpunit.xml` | `testing` |
+| 学習 | `make serve` | `.env` | `learning` |
+| 開発中の動作確認 | `make serve-dev` | `.env.dev` | `learning_dev` |
+| 自動テスト | `make check`（テストだけなら `composer test`） | `phpunit.xml` | `testing` |
 
 - データは外部ボリューム `laravel-learning-pgdata` に保存する。`docker compose down -v` では消えない
 - 次のコマンドは実行しない（学習記録が消える）
@@ -58,10 +74,11 @@ php artisan migrate --env=dev
 
 ## バックアップ
 
-週1回と、`migrate` の実行前・教材の取り込み前に行う。バックアップ先はリポジトリの外にする。
+週1回と、`migrate` の実行前に行う。`make import` は、取り込みの前に自動でバックアップする。バックアップ先はリポジトリの外にする。
 
 ```bash
-docker compose exec -T db pg_dump -U app -Fc learning > "$HOME/Library/Mobile Documents/com~apple~CloudDocs/laravel-learning-backup/learning-$(date +%Y%m%d).dump"
+make backup   # iCloud Drive の laravel-learning-backup に learning-YYYYMMDD.dump を保存する
+make backup BACKUP_DIR=<保存先>   # 保存先を変える
 ```
 
 復元:
@@ -72,9 +89,10 @@ docker compose exec -T db pg_restore -U app -d learning --clean --if-exists < <�
 
 ## 品質チェック
 
-テストの前に `docker compose up -d` でDBを起動しておく。
+テストの前に `make up` でDBを起動しておく。
 
 ```bash
+make check   # 次の3つをまとめて実行する
 composer lint      # Pint（整形チェック）。composer format で整形
 composer analyse   # Larastan（level max）
 composer test      # Pest
