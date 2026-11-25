@@ -16,4 +16,10 @@ return [
     */
     'db_protected' => (bool) env('LEARNING_DB_PROTECTED', true),
 
+    /*
+    | 出典リンクの実在確認で読む、公式ドキュメントの原稿の場所（docs/commands/CMD-02_lessons-check-sources.md 3章）
+    | この後ろに /{バージョン}/{ページ}.md を付けて取得する
+    */
+    'docs_source_base' => 'https://raw.githubusercontent.com/laravel/docs',
+
 ];

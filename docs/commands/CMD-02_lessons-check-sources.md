@@ -110,7 +110,7 @@ WARN  確認できなかった URL が 1 件あります（一時的な問題の
 
 | きっかけ | 条件 | 目的 |
 | --- | --- | --- |
-| `pull_request` | `content/**` を変えたときだけ | 教材に足した URL の誤りを、マージする前に見つける |
+| `pull_request` | `content/**` を変えたとき。確認の仕組み（このワークフロー、`CheckLessonSourcesCommand`、`SourceLinkChecker`）を変えたときも | 教材に足した URL の誤りを、マージする前に見つける。仕組みを変えたときは、本物の公式ドキュメントで動くことを確かめる |
 | `schedule` | 週1回（月曜 9:00 JST。cron は `0 0 * * 1`） | 公式ドキュメントの変更で、アンカーが消えたことを見つける |
 
 - 手順: チェックアウト → PHP の準備 → `composer install` → `.env` の準備 → `php artisan lessons:check-sources`。DB は使わないので、PostgreSQL のサービスコンテナは置かない
