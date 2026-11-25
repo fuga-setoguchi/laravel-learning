@@ -1,0 +1,50 @@
+name: Sources
+
+# 出典リンクの実在確認（docs/commands/CMD-02_lessons-check-sources.md 6章）。
+# 外部への通信の失敗を lint やテストの結果と混ぜないよう、ci.yml とは分ける。
+on:
+  pull_request:
+    # 教材と、確認の仕組みそのものを変えたとき
+    paths:
+      - "content/**"
+      - ".github/workflows/sources.yml"
+      - "app/Console/Commands/CheckLessonSourcesCommand.php"
+      - "app/Content/SourceLinkChecker.php"
+  # 週1回、月曜 9:00（JST）。公式ドキュメントの変更でアンカーが消えたことを見つける
+  schedule:
+    - cron: "0 0 * * 1"
+
+# 権限は読み取りのみ（docs/02_architecture.md 5章）
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: "8.4"
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      # DB は使わない（CMD-02 1章）
+      - name: Check sources
+        run: php artisan lessons:check-sources

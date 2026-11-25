@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// 教材の取り込み（CMD-01）のメッセージ。項目のパスはメッセージの前に表示するため、:attribute は使わない
+// 教材の取り込み（CMD-01）と出典リンクの実在確認（CMD-02）のメッセージ。項目のパスはメッセージの前に表示するため、:attribute は使わない
 return [
 
     // 読み込み・解析
@@ -57,6 +57,15 @@ return [
 
     // 補足資料のURL
     'official_url' => 'Laravel の公式の資料（https://laravel.com/docs/{バージョン}/{ページ}、https://laravel.com/blog/…、https://blog.laravel.com/…）にしてください。',
+
+    // 出典リンクの実在確認（CMD-02）
+    'source_check' => [
+        'page_missing' => 'ページが見つかりません（:url）',
+        'anchor_missing' => 'アンカーが見つかりません（:url）',
+        'unavailable' => ':url（:reason）',
+        'http_status' => 'HTTP :status',
+        'connection_failed' => '接続できません',
+    ],
 
     // 警告
     'warnings' => [
