@@ -276,6 +276,7 @@ it('CMD-01-T11 推奨から外れる教材は、警告を出して取り込む',
 
     expect($result['code'])->toBe(0)
         ->and($result['output'])->toContain('ch01/l01.md: recall_cards が 2 件です（推奨 3〜5 件）')
+        ->not->toContain('件）.')
         ->toContain('ch01/l01.md: AIコードレビュー問題（code_review）がありません')
         ->and(Lesson::count())->toBe(3);
 });

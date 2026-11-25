@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Console\Concerns\WritesStatusMessages;
 use App\Content\ContentImporter;
 use App\Content\ContentLoader;
 use App\Content\ContentValidationException;
@@ -22,6 +23,8 @@ use Illuminate\Console\Command;
 #[Description('教材のMarkdownを検証し、DBに取り込む')]
 class ImportLessonsCommand extends Command
 {
+    use WritesStatusMessages;
+
     public function handle(ContentLoader $loader, LessonFileValidator $validator, ContentImporter $importer): int
     {
         $path = $this->option('path');
@@ -43,7 +46,7 @@ class ImportLessonsCommand extends Command
 
     private function reportErrors(ContentValidationException $e): void
     {
-        $this->components->error("教材の検証で {$e->count()} 件のエラーがありました。DBは変更していません。");
+        $this->errorMessage("教材の検証で {$e->count()} 件のエラーがありました。DBは変更していません。");
 
         foreach ($e->errors as $file => $messages) {
             $this->line("  {$file}");
@@ -64,7 +67,7 @@ class ImportLessonsCommand extends Command
         $this->line('  問題:     '.$this->formatCounts($result->questions));
 
         foreach ($result->warnings as $warning) {
-            $this->components->warn($warning);
+            $this->warnMessage($warning);
         }
     }
 
