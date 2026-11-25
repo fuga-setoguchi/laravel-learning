@@ -58,6 +58,7 @@ Laravel標準の構成に、以下を追加する。各クラスの置き場所�
 app/
 ├── Console/Commands/ImportLessonsCommand.php   # CMD-01。入出力のみ。処理は Content に委譲
 ├── Console/Commands/CheckLessonSourcesCommand.php  # CMD-02。入出力のみ。処理は Content に委譲
+├── Console/Concerns/WritesStatusMessages.php  # コマンドの ERROR / WARN 表示。日本語の文末に「.」を足さない
 ├── Content/                                    # 教材の取り込み（ファイル → DB）
 │   ├── ContentLoader.php                       # 教材フォルダから chapters.yaml と chNN/lNN.md を集める
 │   ├── LessonFileParser.php                    # Markdown → front matter の配列 + 本文

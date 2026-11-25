@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Console\Concerns\WritesStatusMessages;
 use App\Content\ContentLoader;
 use App\Content\ContentValidationException;
 use App\Content\LessonFileValidator;
@@ -21,6 +22,8 @@ use Illuminate\Console\Command;
 #[Description('教材の出典URLのページとアンカーが実在するかを確かめる')]
 class CheckLessonSourcesCommand extends Command
 {
+    use WritesStatusMessages;
+
     public function handle(ContentLoader $loader, LessonFileValidator $validator, SourceLinkChecker $checker): int
     {
         $path = $this->option('path');
@@ -48,7 +51,7 @@ class CheckLessonSourcesCommand extends Command
 
     private function reportValidationErrors(ContentValidationException $e): void
     {
-        $this->components->error("教材の検証で {$e->count()} 件のエラーがありました。");
+        $this->errorMessage("教材の検証で {$e->count()} 件のエラーがありました。");
 
         foreach ($e->errors as $file => $messages) {
             $this->line("  {$file}");
@@ -61,7 +64,7 @@ class CheckLessonSourcesCommand extends Command
     private function reportResult(SourceCheckResult $result): void
     {
         if ($result->errors !== []) {
-            $this->components->error("出典の確認で {$result->errorCount()} 件のエラーがありました。");
+            $this->errorMessage("出典の確認で {$result->errorCount()} 件のエラーがありました。");
 
             foreach ($result->errors as $file => $messages) {
                 $this->line("  {$file}");
@@ -75,7 +78,7 @@ class CheckLessonSourcesCommand extends Command
         }
 
         if ($result->warnings !== []) {
-            $this->components->warn('確認できなかった URL が '.count($result->warnings).' 件あります（一時的な問題の可能性があります）。');
+            $this->warnMessage('確認できなかった URL が '.count($result->warnings).' 件あります（一時的な問題の可能性があります）。');
 
             foreach ($result->warnings as $warning) {
                 $this->line("  {$warning}");

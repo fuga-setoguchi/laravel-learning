@@ -98,6 +98,7 @@ it('CMD-02-T04 ファイルが 404 なら、ページが見つからないエラ
 
     expect($result['code'])->toBe(1)
         ->and($result['output'])->toContain('出典の確認で 1 件のエラーがありました。')
+        ->and($result['output'])->not->toContain('。.')
         ->and($result['output'])->toContain('ch01/l02.md')
         ->and($result['output'])->toContain('sources.0.url: ページが見つかりません（https://laravel.com/docs/13.x/lifecycle）');
 
@@ -149,7 +150,8 @@ it('CMD-02-T08 一時的な失敗が続けば、3回取得した後に警告に�
     $result = checkSources($this->content->path);
 
     expect($result['code'])->toBe(0)
-        ->and($result['output'])->toContain('確認できなかった URL が 1 件あります')
+        ->and($result['output'])->toContain('確認できなかった URL が 1 件あります（一時的な問題の可能性があります）。')
+        ->and($result['output'])->not->toContain('。.')
         ->and($result['output'])->toContain("https://laravel.com/docs/13.x/lifecycle（{$reason}）");
 
     Http::assertSentCount(5);
@@ -194,6 +196,7 @@ it('CMD-02-T11 教材に検証エラーがあれば、通信せずに失敗す�
 
     expect($result['code'])->toBe(1)
         ->and($result['output'])->toContain('教材の検証で 1 件のエラーがありました。')
+        ->and($result['output'])->not->toContain('。.')
         ->and($result['output'])->toContain('title');
 
     Http::assertNothingSent();
