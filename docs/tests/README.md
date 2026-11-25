@@ -8,7 +8,7 @@
 | 種類 | ツール | 対象 | 配置 |
 | --- | --- | --- | --- |
 | 単体テスト | Pest | ReviewScheduler、NextQuestionPicker、ChoiceShuffler、Enum の変換、LessonFileParser | `tests/Unit/` |
-| 機能テスト | Pest | CMD-01（コマンド〜DB）、SCR-01〜04（HTTPリクエスト〜DB・HTML）、CompleteLesson、RecordReviewAnswer、ReviewQueue | `tests/Feature/` |
+| 機能テスト | Pest | CMD-01（コマンド〜DB）、CMD-02（コマンド〜HTTP。HTTP クライアントは偽物にする）、SCR-01〜04（HTTPリクエスト〜DB・HTML）、CompleteLesson、RecordReviewAnswer、ReviewQueue | `tests/Feature/` |
 | 環境テスト | Pest | ENV-T01〜03（5章）。`migrate:fresh` を実際に実行するため `RefreshDatabase` を使わない | `tests/Environment/` |
 
 ブラウザテスト（JavaScriptの実行）は行わない。画面はJavaScriptに依存しないため、HTTPレスポンスのHTMLで検証できる。
@@ -35,6 +35,7 @@
 | [DB_test.md](DB_test.md) | DB（マイグレーション・制約・モデル） |
 | [LOGIC_test.md](LOGIC_test.md) | 復習ロジック（ReviewScheduler、NextQuestionPicker、ChoiceShuffler、ReviewQueue、CompleteLesson、RecordReviewAnswer） |
 | [CMD-01_test.md](CMD-01_test.md) | 教材の取り込み |
+| [CMD-02_test.md](CMD-02_test.md) | 出典リンクの実在確認 |
 | [SCR-01_test.md](SCR-01_test.md) | ホーム |
 | [SCR-02_test.md](SCR-02_test.md) | カリキュラム |
 | [SCR-03_test.md](SCR-03_test.md) | レッスン |

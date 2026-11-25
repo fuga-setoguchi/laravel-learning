@@ -57,6 +57,7 @@ Laravel標準の構成に、以下を追加する。各クラスの置き場所�
 ```
 app/
 ├── Console/Commands/ImportLessonsCommand.php   # CMD-01。入出力のみ。処理は Content に委譲
+├── Console/Commands/CheckLessonSourcesCommand.php  # CMD-02。入出力のみ。処理は Content に委譲
 ├── Content/                                    # 教材の取り込み（ファイル → DB）
 │   ├── ContentLoader.php                       # 教材フォルダから chapters.yaml と chNN/lNN.md を集める
 │   ├── LessonFileParser.php                    # Markdown → front matter の配列 + 本文
@@ -65,6 +66,7 @@ app/
 │   ├── ContentImporter.php                     # 検証済みの教材をトランザクションでDBへ反映
 │   ├── ImportResult.php / ImportCounts.php / ImportStatus.php  # 追加・更新・変更なし・引退・復活の件数と警告
 │   ├── ContentValidationException.php          # 検証エラーの一覧（ファイルごと）を持つ例外
+│   ├── SourceLinkChecker.php                   # 出典URLのページとアンカーの実在確認（CMD-02。DB不使用）
 │   └── Data/ParsedLesson.php ほか              # 検証済みの教材を表す readonly クラス（ContentSet にまとめる）
 ├── Review/                                     # 復習のドメインロジック
 │   ├── ReviewScheduler.php                     # 段階と次回の復習日の計算（純粋なクラス、DB不使用）
@@ -222,6 +224,7 @@ URL短縮サービスの `ci.yml` を元に、MySQLをPostgreSQL（`postgres:18`
 | 教材の検証 | `php artisan migrate --force && php artisan lessons:import --dry-run`（`DB_DATABASE=testing`。CIの `.env` は保護が有効なため `migrate:fresh` は使えない） |
 
 - 権限は `contents: read` のみ。actions はコミットハッシュで固定する
+- 出典リンクの実在確認（CMD-02）は、外部への通信の失敗を上の結果と混ぜないよう、別のワークフロー（`sources.yml`）にする。`content/**` を変えた PR と、週1回の定期実行で動かす（詳細は [CMD-02](commands/CMD-02_lessons-check-sources.md) 6章）
 - Larastanの対象は `app`、`config`、`database`、`routes`、`bootstrap/app.php`
 
 ## 6. セキュリティ設計
