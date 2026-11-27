@@ -8,7 +8,7 @@
 | 種類 | ツール | 対象 | 配置 |
 | --- | --- | --- | --- |
 | 単体テスト | Pest | ReviewScheduler、NextQuestionPicker、ChoiceShuffler、Enum の変換、LessonFileParser | `tests/Unit/` |
-| 機能テスト | Pest | CMD-01（コマンド〜DB）、CMD-02（コマンド〜HTTP。HTTP クライアントは偽物にする）、SCR-01〜04（HTTPリクエスト〜DB・HTML）、CompleteLesson、RecordReviewAnswer、ReviewQueue | `tests/Feature/` |
+| 機能テスト | Pest | CMD-01（コマンド〜DB）、CMD-02（コマンド〜HTTP。HTTP クライアントは偽物にする）、SCR-01〜04・LAYOUT（HTTPリクエスト〜DB・HTML）、CompleteLesson、RecordReviewAnswer、ReviewQueue | `tests/Feature/` |
 | 環境テスト | Pest | ENV-T01〜03（5章）。`migrate:fresh` を実際に実行するため `RefreshDatabase` を使わない | `tests/Environment/` |
 
 ブラウザテスト（JavaScriptの実行）は行わない。画面はJavaScriptに依存しないため、HTTPレスポンスのHTMLで検証できる。
@@ -40,6 +40,7 @@
 | [SCR-02_test.md](SCR-02_test.md) | カリキュラム |
 | [SCR-03_test.md](SCR-03_test.md) | レッスン |
 | [SCR-04_test.md](SCR-04_test.md) | 復習 |
+| [LAYOUT_test.md](LAYOUT_test.md) | 共通レイアウト（左のメニュー） |
 
 ## 5. 環境
 
