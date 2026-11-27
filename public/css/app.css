@@ -1,0 +1,19 @@
+/*
+ * Pico CSS で足りない調整だけを書く（docs/02_architecture.md 2章）。
+ */
+
+/*
+ * 選択式の問題: 選択肢を選ぶまで送信ボタンを淡く表示し、選ぶと通常の色にする
+ * （SCR-03 段階1、SCR-04 選択式。docs/00_project-plan.md「画面遷移の方針」）。
+ * JavaScript は使わず :has() で切り替える。ボタンは押せるままにし、未選択での送信は
+ * ラジオボタンの required でブラウザが止める（押したときに理由が表示される）。
+ */
+form:has(input[type="radio"][required]):not(:has(input[type="radio"]:checked)) button[type="submit"] {
+    opacity: 0.4;
+    filter: grayscale(1);
+    cursor: not-allowed;
+}
+
+form:has(input[type="radio"][required]) button[type="submit"] {
+    transition: opacity 0.15s ease, filter 0.15s ease;
+}

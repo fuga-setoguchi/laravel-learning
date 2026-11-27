@@ -37,7 +37,7 @@
 | DB | PostgreSQL（Docker、`postgres:18`） | 18.x | 学習用・開発用・テスト用でデータベースを分ける（4章） |
 | コンテナ | Docker Compose | | DBのみ（`compose.yaml`） |
 | 画面 | Blade + Bladeコンポーネント | Laravel同梱 | |
-| CSS | Pico CSS（classless版、`public/vendor/pico/` に同梱） | 2.1.1 | Node.jsなしで最低限の見た目を整える |
+| CSS | Pico CSS（classless版、`public/vendor/pico/` に同梱） | 2.1.1 | Node.jsなしで最低限の見た目を整える。Pico で足りない調整だけを `public/css/app.css` に書く |
 | Markdown | league/commonmark（`Str::markdown`） | Laravel同梱 | 本文・問題文の表示 |
 | front matter | league/commonmark の FrontMatterExtension + symfony/yaml（`composer require symfony/yaml` が必要） | | 教材ファイルの解析 |
 | ハイライト | highlight.js（common ビルドと github / github-dark の配色。`public/vendor/highlight/` に同梱） | 11.11.1 | 本文中のコード表示 |

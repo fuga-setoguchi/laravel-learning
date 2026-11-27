@@ -81,7 +81,7 @@
 | 1 | 問題文 | `prompt`（Markdown） |
 | 2 | コード | `code_review` のみ。`<pre><code class="language-{code_language}">` |
 | 3 | 選択肢 | ラジオボタン（`name="choice_key"`、値は `key`、`required`）。表示順は ChoiceShuffler、番号は表示順 |
-| 4 | 回答する | `review.answers.store` へPOST |
+| 4 | 回答する | `review.answers.store` へPOST。選択肢を選ぶまでは淡く表示し、選ぶと通常の色にする（`public/css/app.css` の `:has()`。JavaScriptは使わない） |
 
 ## 3. 回答の記録（POST /review/answers）
 
