@@ -24,6 +24,7 @@
 │ [⌂] ホーム      │  各画面の内容（@yield('content')）      │
 │ [▯] カリキュラム │                                     │
 │ [↻] 復習        │                                     │
+│ [≡] 学習記録     │                                     │
 │                │                                     │
 │ （画面の高さに  │                                     │
 │   固定）        │                                     │
@@ -63,6 +64,7 @@
 | 1 | ホーム | `home` | `home` | `home` |
 | 2 | カリキュラム | `book` | `curriculum` | `curriculum`、`lessons.*`（レッスンはカリキュラムから開くため） |
 | 3 | 復習 | `review` | `review.show` | `review.*` |
+| 4 | 学習記録 | `database` | `records` | `records` |
 
 ## 4. メニューの持ち方
 

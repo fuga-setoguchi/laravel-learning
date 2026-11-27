@@ -179,3 +179,26 @@ chapters 1─* lessons 1─* lesson_sources
 - `PreQuestion` のキャストはオブジェクトのキャッシュを無効にする（`withoutObjectCaching`）。jsonb はキーの順や空白を正規化して保存するため、キャッシュした値が保存時に書き戻されると、内容が同じでも「変更あり」と判定される。取り込みでは、事前の問いを値で比べて変わったときだけ設定する
 - `PreQuestion`（`app/ValueObjects`）は `Castable` を実装し、`prompt`・`choices`（`Choice` の一覧。`key` と `body`）・`answer`・`explanation` を持つ readonly クラスとする
 - ファクトリは全モデルに用意する。学習記録のファクトリには、テストで使う状態（`ReviewState::due()` / `notDue()`、`ReviewLog::scheduled()` / `practice()` / `failedOn()` など）を用意する
+
+## 6. 読み取り専用のユーザー（learning_reader）
+
+学習記録の画面（[SCR-05](screens/SCR-05_records.md)）で、利用者が書いた SQL を実行するためのユーザー。アプリがふだん使う `app` は Docker の PostgreSQL ではスーパーユーザーで、何でもできるため、利用者の SQL には使わない。
+
+| 項目 | 内容 |
+| --- | --- |
+| ユーザー名 | `learning_reader`（`DB_READER_USERNAME` で変えられる） |
+| パスワード | 既定は固定値（`config/database.php` の `pgsql_reader`。`DB_READER_PASSWORD` で変えられる）。`app` / `secret` と同じく、ローカル専用で `127.0.0.1` でだけ待ち受けるため、固定値でよい（[方式設計書](02_architecture.md) 4.1） |
+| 属性 | `LOGIN`、`NOSUPERUSER`、`NOCREATEDB`、`NOCREATEROLE`、`NOREPLICATION`、`NOBYPASSRLS`、`CONNECTION LIMIT 5` |
+| ユーザーの既定の設定 | `default_transaction_read_only = on`、`statement_timeout = 5s`（アプリの設定を誤っても、読み取り専用・時間の上限が効くようにする） |
+| 権限 | `public` スキーマの `USAGE`、全テーブルの `SELECT` だけ。これから作るテーブルにも `SELECT` を付ける（`ALTER DEFAULT PRIVILEGES FOR ROLE <マイグレーションを実行するユーザー> IN SCHEMA public GRANT SELECT ON TABLES`） |
+| 持たない権限 | テーブルへの `INSERT`・`UPDATE`・`DELETE`・`TRUNCATE`、テーブルの作成・変更。スーパーユーザーや `pg_read_server_files`・`pg_execute_server_program` などの特別な権限（サーバー上のファイルの読み書き・コマンドの実行に必要） |
+
+### 6.1 作り方（マイグレーション）
+
+`database/migrations/2026_11_27_000001_create_learning_reader_role.php` で作る。
+
+- PostgreSQL のユーザーは、データベースごとではなく **PostgreSQL 全体で1つ**。学習用・開発用・テスト用のどの DB のマイグレーションでも作ろうとするため、`pg_roles` になければ作る（あれば作らない）
+- 権限（`GRANT`）と既定の権限（`ALTER DEFAULT PRIVILEGES`）は **データベースごと**。マイグレーションを実行した DB に付ける
+- `down()` では、その DB の権限と既定の権限を取り消す。ユーザーは、ほかの DB で使っているため消さない
+- パスワードはマイグレーションの中で SQL の文字列として組み立てるため、PDO の `quote()` でエスケープする（DDL ではバインドが使えないため）
+- 既存の学習用DB・開発用DBでは、`make backup` の後に `php artisan migrate`（開発用は `--env=dev`）を1回実行する。テスト用DBと CI は、テストの `migrate:fresh` で毎回実行される

@@ -90,9 +90,15 @@ app/
 │   ├── Grade.php                               # pass / hold / fail（ReviewResult から変換）
 │   └── ReviewMode.php                          # scheduled / practice
 ├── Http/
+│   ├── Middleware/EnsureLocalHost.php          # Host が 127.0.0.1 / localhost でなければ 400（6章）
 │   ├── Controllers/                            # HomeController, CurriculumController,
-│   │                                           # LessonController, ReviewController
+│   │                                           # LessonController, ReviewController, RecordsController
 │   └── Requests/SubmitReviewAnswerRequest.php
+├── Records/                                    # 学習記録（SQL）（SCR-05）
+│   ├── ReadOnlyQueryRunner.php                 # 利用者の SQL を、読み取り専用のユーザー・トランザクションで実行する
+│   ├── QueryResult.php / QueryError.php        # 実行の結果（列名・行・上限を超えたか・時間）、エラー（SQLSTATE・文言）
+│   ├── SchemaReader.php                        # テーブルと列の一覧（information_schema）
+│   └── SampleQueries.php                       # サンプルのクエリ（見出しと SQL）
 ├── View/
 │   ├── MenuItem.php                            # メニュー項目（メニュー名・ルート名・アイコン名・選択中にするルート名）
 │   └── Components/Sidebar.php / Icon.php       # 左のメニュー（項目の一覧を持つ）、インラインSVGのアイコン（LAYOUT）
@@ -104,7 +110,7 @@ app/
 resources/views/
 ├── layouts/app.blade.php                       # 共通レイアウト（左のメニュー + 本文。docs/screens/LAYOUT_common.md）
 ├── components/                                 # lesson-header（レッスンの見出しと段階）、markdown、lesson-sources（対象バージョンと出典）、code-block（コード）、review-question-source（出題中の問題のレッスン）、sidebar（左のメニュー）、icon（アイコン）
-├── home.blade.php / curriculum.blade.php
+├── home.blade.php / curriculum.blade.php / records.blade.php
 ├── lessons/{pre-question,read,recall,completed}.blade.php
 └── review/{question,result,done}.blade.php
 content/
@@ -136,6 +142,7 @@ content/
 | GET | `/review` | `review.show` | SCR-04 次の問題 / 完了 |
 | POST | `/review/answers` | `review.answers.store` | 回答の記録 → 選択式は `review.answers.show`、想起カードは `review.show` へ |
 | GET | `/review/answers/{reviewLog}` | `review.answers.show` | SCR-04 正誤と解説 |
+| GET | `/records` | `records` | SCR-05 学習記録（SQL）（`?sql=` で実行） |
 
 - `{lesson}` は文字列の教材id（`ch03-l02`）で暗黙の結合を行う。引退したレッスンは404とする（ルートモデル結合で `active()` スコープを適用する）
 - 想定外のパス・存在しないidは404。Laravel標準のエラー画面を使う
@@ -215,6 +222,20 @@ content/
 - バックアップ先: リポジトリの外（iCloud Drive など）
 - 手順はREADMEに記載する
 
+### 4.4 読み取り専用の接続（学習記録の SQL）
+
+学習記録の画面（SCR-05）で利用者が書いた SQL は、ふだんの接続（`pgsql`、ユーザー `app`）ではなく、読み取り専用のユーザーの接続で実行する。
+
+| 項目 | 内容 |
+| --- | --- |
+| 接続名 | `pgsql_reader`（`config/database.php`） |
+| 接続先 | `pgsql` と同じホスト・ポート・データベース（`DB_DATABASE`）。学習用・開発用・テスト用のどれでも、その環境の DB を読む |
+| ユーザー | `learning_reader`（`DB_READER_USERNAME`、`DB_READER_PASSWORD` で変えられる）。権限は [DB設計書](03_database.md) 6章 |
+| 使う場所 | `App\Records` のクラスだけ。ほかの処理は `pgsql` を使う |
+
+- テストでは、`pgsql_reader` の接続先も `testing` であることを、`tests/TestCase.php` の安全装置で確かめる（4.2）
+- 既存の学習用DB・開発用DBには、`make backup` の後に `php artisan migrate`（開発用は `--env=dev`）を1回実行して、ユーザーを作る
+
 ## 5. CI（GitHub Actions）
 
 URL短縮サービスの `ci.yml` を元に、MySQLをPostgreSQL（`postgres:18` のサービスコンテナ、データベース `testing`）に置き換え、フロントエンド・OpenAPIのジョブを除いた1ジョブとする。
@@ -243,7 +264,9 @@ URL短縮サービスの `ci.yml` を元に、MySQLをPostgreSQL（`postgres:18`
 | Bladeの出力 | `{{ }}` でエスケープ。`{!! !!}` は `Markdown::toHtml` の戻り値（`HtmlString`）にのみ使う |
 | フォーム | CSRFトークン（Laravel標準） |
 | 起動 | `php artisan serve` は `127.0.0.1` でのみ待ち受ける（`--host` を変えない） |
+| ホスト名 | リクエストの Host が `127.0.0.1` か `localhost`（ポートは問わない）でなければ 400 にする（`App\Http\Middleware\EnsureLocalHost`、すべての画面に適用。許可するホスト名は `config/learning.php` の `allowed_hosts`）。DNS リバインディング（外部のサイトのドメインを 127.0.0.1 に向け直し、ブラウザ経由で画面の内容を読む手口）を防ぐ。Laravel の `trustHosts()` は `APP_ENV=local` では効かない（`TrustHosts::shouldSpecifyTrustedHosts()`）ため、自前のミドルウェアにする |
 | 外部ファイル | CSS・JSは同梱し、外部から読み込まない |
+| 学習記録の SQL | SELECT しかできない専用のユーザー（`learning_reader`）・読み取り専用のトランザクション・必ずロールバック・1回に1文・時間の上限で実行する（[SCR-05](screens/SCR-05_records.md) 6.3） |
 
 ## 7. 実装の順序
 

@@ -30,3 +30,5 @@
 | DB-T13 | 期限が今日・昨日・明日の `review_states` で `where('next_review_on', '<=', 今日)` | 今日と昨日だけが返る（日付型の比較で期限当日が含まれる） |
 | DB-T14 | `fillable` にない属性をまとめて代入 | 例外（`shouldBeStrict`） |
 | DB-T15 | 各Enumの `values()` | すべての case の値を、定義順に返す |
+| DB-T16 | マイグレーションの後の `learning_reader` | ログインでき、スーパーユーザーでなく、全テーブルに SELECT の権限があり、INSERT・UPDATE・DELETE・TRUNCATE の権限がない |
+| DB-T17 | `learning_reader` がすでにある状態で、ユーザーを作るマイグレーションをもう一度実行 | エラーにならない（ユーザーは PostgreSQL 全体で共有され、学習用・開発用・テスト用のどの DB のマイグレーションでも作ろうとするため） |
