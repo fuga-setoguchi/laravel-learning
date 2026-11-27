@@ -11,18 +11,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/highlight/github-dark.min.css') }}" media="(prefers-color-scheme: dark)">
 </head>
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li><strong><a href="{{ route('home') }}">Laravel学習</a></strong></li>
-            </ul>
-            <ul>
-                <li><a href="{{ route('home') }}">ホーム</a></li>
-                <li><a href="{{ route('curriculum') }}">カリキュラム</a></li>
-                <li><a href="{{ route('review.show') }}">復習</a></li>
-            </ul>
-        </nav>
-    </header>
+    <x-sidebar />
     <main>
         @if (session('status'))
             <p role="status"><mark>{{ session('status') }}</mark></p>

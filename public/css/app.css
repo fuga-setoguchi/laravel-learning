@@ -17,3 +17,104 @@ form:has(input[type="radio"][required]):not(:has(input[type="radio"]:checked)) b
 form:has(input[type="radio"][required]) button[type="submit"] {
     transition: opacity 0.15s ease, filter 0.15s ease;
 }
+
+/*
+ * 共通レイアウト: 左のメニュー + 本文（docs/screens/LAYOUT_common.md 2章）。
+ * 幅が狭い画面では、メニューを上に横並びで表示する。
+ */
+body > header.sidebar {
+    max-width: none;
+    margin: 0;
+    padding: 1rem;
+    border-bottom: 1px solid var(--pico-muted-border-color);
+    background-color: var(--pico-card-sectioning-background-color);
+}
+
+.sidebar-brand {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    color: var(--pico-color);
+    text-decoration: none;
+}
+
+/* Pico の nav（横並び・負のマージン）を、メニュー用に置き換える */
+.sidebar nav,
+.sidebar nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar nav li {
+    padding: 0;
+}
+
+.sidebar nav li::before {
+    content: none;
+}
+
+.sidebar nav li a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    color: var(--pico-muted-color);
+    text-decoration: none;
+}
+
+.sidebar nav li a:hover {
+    color: var(--pico-primary);
+    background-color: var(--pico-primary-focus);
+}
+
+.sidebar nav li a[aria-current="page"] {
+    color: var(--pico-primary-inverse);
+    background-color: var(--pico-primary-background);
+}
+
+.sidebar svg {
+    flex-shrink: 0;
+}
+
+/* 本文の見出し（h1）と画面の上端の間をあける */
+body > main {
+    padding-top: 2rem;
+}
+
+@media (min-width: 768px) {
+    body {
+        display: grid;
+        grid-template-columns: 14rem minmax(0, 1fr);
+        align-items: start;
+    }
+
+    body > header.sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        border-bottom: none;
+        border-right: 1px solid var(--pico-muted-border-color);
+    }
+
+    .sidebar-brand {
+        margin-bottom: 1.5rem;
+    }
+
+    .sidebar nav,
+    .sidebar nav ul {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: stretch;
+    }
+
+    /* Pico の本文の最大幅は、メニューの分を考えていないため上書きする */
+    body > main {
+        max-width: 60rem;
+        padding-inline: 2rem;
+        padding-top: 3rem;
+    }
+}

@@ -93,14 +93,17 @@ app/
 │   ├── Controllers/                            # HomeController, CurriculumController,
 │   │                                           # LessonController, ReviewController
 │   └── Requests/SubmitReviewAnswerRequest.php
+├── View/
+│   ├── MenuItem.php                            # メニュー項目（メニュー名・ルート名・アイコン名・選択中にするルート名）
+│   └── Components/Sidebar.php / Icon.php       # 左のメニュー（項目の一覧を持つ）、インラインSVGのアイコン（LAYOUT）
 ├── Models/                                     # Chapter, Lesson, LessonSource, Question,
 │                                               # QuestionChoice, LessonProgress, ReviewState, ReviewLog
 └── Support/
     ├── Markdown.php                            # Str::markdown の安全な設定をまとめる
     └── TypedArray.php                          # 配列（検証済みの教材、DBの行）から型を確かめて値を取り出す
 resources/views/
-├── layouts/app.blade.php
-├── components/                                 # lesson-header（レッスンの見出しと段階）、markdown、lesson-sources（対象バージョンと出典）、code-block（コード）、review-question-source（出題中の問題のレッスン）
+├── layouts/app.blade.php                       # 共通レイアウト（左のメニュー + 本文。docs/screens/LAYOUT_common.md）
+├── components/                                 # lesson-header（レッスンの見出しと段階）、markdown、lesson-sources（対象バージョンと出典）、code-block（コード）、review-question-source（出題中の問題のレッスン）、sidebar（左のメニュー）、icon（アイコン）
 ├── home.blade.php / curriculum.blade.php
 ├── lessons/{pre-question,read,recall,completed}.blade.php
 └── review/{question,result,done}.blade.php
