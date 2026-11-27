@@ -6,6 +6,7 @@
     <title>@yield('title', 'Laravel学習')</title>
     {{-- CSS・JSは public/vendor/ に同梱し、外部から読み込まない（docs/02_architecture.md 2章・6章） --}}
     <link rel="stylesheet" href="{{ asset('vendor/pico/pico.classless.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/highlight/github.min.css') }}" media="(prefers-color-scheme: light)">
     <link rel="stylesheet" href="{{ asset('vendor/highlight/github-dark.min.css') }}" media="(prefers-color-scheme: dark)">
 </head>

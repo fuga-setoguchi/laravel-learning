@@ -52,7 +52,7 @@
 | --- | --- | --- |
 | 1 | 問題文 | `pre_question.prompt`（Markdown） |
 | 2 | 選択肢 | ラジオボタン（`name="answer"`、値は `key`、`required`）。表示順は ChoiceShuffler（シードはレッスンid）、番号は表示順 |
-| 3 | 答えて本文へ | **GET**フォームで `lessons.read` へ送信（`?answer=b`）。答えずに本文へ進む手段は置かない |
+| 3 | 答えて本文へ | **GET**フォームで `lessons.read` へ送信（`?answer=b`）。答えずに本文へ進む手段は置かない。選択肢を選ぶまでは淡く表示し、選ぶと通常の色にする（`public/css/app.css` の `:has()`。JavaScriptは使わない） |
 
 ## 3. 段階2 本文
 
