@@ -8,7 +8,7 @@
 | 種類 | ツール | 対象 | 配置 |
 | --- | --- | --- | --- |
 | 単体テスト | Pest | ReviewScheduler、NextQuestionPicker、ChoiceShuffler、Enum の変換、LessonFileParser | `tests/Unit/` |
-| 機能テスト | Pest | CMD-01（コマンド〜DB）、CMD-02（コマンド〜HTTP。HTTP クライアントは偽物にする）、SCR-01〜04・LAYOUT（HTTPリクエスト〜DB・HTML）、CompleteLesson、RecordReviewAnswer、ReviewQueue | `tests/Feature/` |
+| 機能テスト | Pest | CMD-01（コマンド〜DB）、CMD-02（コマンド〜HTTP。HTTP クライアントは偽物にする）、SCR-01〜05・LAYOUT（HTTPリクエスト〜DB・HTML）、CompleteLesson、RecordReviewAnswer、ReviewQueue | `tests/Feature/` |
 | 環境テスト | Pest | ENV-T01〜03（5章）。`migrate:fresh` を実際に実行するため `RefreshDatabase` を使わない | `tests/Environment/` |
 
 ブラウザテスト（JavaScriptの実行）は行わない。画面はJavaScriptに依存しないため、HTTPレスポンスのHTMLで検証できる。
@@ -40,6 +40,7 @@
 | [SCR-02_test.md](SCR-02_test.md) | カリキュラム |
 | [SCR-03_test.md](SCR-03_test.md) | レッスン |
 | [SCR-04_test.md](SCR-04_test.md) | 復習 |
+| [SCR-05_test.md](SCR-05_test.md) | 学習記録（SQL） |
 | [LAYOUT_test.md](LAYOUT_test.md) | 共通レイアウト（左のメニュー） |
 
 ## 5. 環境
@@ -49,3 +50,13 @@
 | ENV-T01 | テスト内で `DB::prohibitDestructiveCommands(true)` を直接呼んだ後、`migrate:fresh` が実行されず失敗する（設定は起動時に読まれるため、テストでは設定値ではなく直接呼ぶ）。あわせて `AppServiceProvider` が `config('learning.db_protected')` の値を渡していることを確認する |
 | ENV-T02 | `LEARNING_DB_PROTECTED=false` のとき、`migrate:fresh` が実行できる |
 | ENV-T03 | テスト実行時の接続先が `pgsql` の `testing` である（安全装置は `tests/TestCase.php` の `createApplication()`） |
+| ENV-T04 | テスト実行時の `pgsql_reader`（学習記録の SQL を実行する読み取り専用の接続）の接続先も `testing` である（同じ安全装置で確かめる） |
+
+## 6. セキュリティ
+
+テストファイル: `tests/Feature/Http/EnsureLocalHostTest.php`
+
+| ID | 内容 |
+| --- | --- |
+| SEC-T01 | Host が `evil.example` のリクエストは 400 になる |
+| SEC-T02 | Host が `127.0.0.1:8000`・`localhost:8001` のリクエストは通常どおり表示される |
